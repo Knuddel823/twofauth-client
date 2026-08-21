@@ -55,6 +55,17 @@ pub fn load_config() -> Result<AppConfig> {
         .with_context(|| format!("Could not parse configuration from {}", path.display()))
 }
 
+pub fn delete_config() -> Result<()> {
+    let path = config_path()?;
+
+    if path.exists() {
+        fs::remove_file(&path)
+            .with_context(|| format!("Could not delete configuration {}", path.display()))?;
+    }
+
+    Ok(())
+}
+
 pub fn config_exists() -> bool {
     config_path().map(|path| path.is_file()).unwrap_or(false)
 }

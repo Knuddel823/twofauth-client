@@ -35,6 +35,16 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
     title.add_css_class("title");
     header.set_title_widget(Some(&title));
 
+    let menu_button = gtk::MenuButton::new();
+    menu_button.set_icon_name("open-menu-symbolic");
+
+    let menu = gtk::gio::Menu::new();
+    menu.append(Some(&tr("Settings")), Some("app.settings"));
+
+    menu_button.set_menu_model(Some(&menu));
+
+    header.pack_end(&menu_button);
+
     let search = gtk::SearchEntry::new();
     search.set_placeholder_text(Some(&tr("Search accounts...")));
     search.set_hexpand(true);

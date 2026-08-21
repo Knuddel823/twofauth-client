@@ -46,3 +46,24 @@ msgstr "Valid for"
 
 msgid "seconds"
 msgstr "seconds"
+
+msgid "Access token is stored securely."
+msgstr "Access token is stored securely."
+
+msgid "New personal access token"
+msgstr "New personal access token"
+
+msgid "Leave empty to keep the current token"
+msgstr "Leave empty to keep the current token"
+
+msgid "Test and save"
+msgstr "Test and save"
+
+msgid "Reset connection"
+msgstr "Reset connection"
+
+msgid "Could not load the stored access token."
+msgstr "Could not load the stored access token."
+
+msgid "Settings saved successfully."
+msgstr "Settings saved successfully."
