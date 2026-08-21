@@ -17,6 +17,10 @@ for size in 16 24 32 48 64 128 256; do
         "/usr/local/share/icons/hicolor/${size}x${size}/apps/${APP_ID}.png"
 done
 
+# Remove icon used by early development versions.
+sudo rm -f \
+    "/usr/local/share/icons/hicolor/scalable/apps/${APP_ID}.svg"
+
 sudo rm -f \
     "/usr/local/share/metainfo/${APP_ID}.metainfo.xml"
 

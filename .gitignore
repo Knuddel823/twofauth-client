@@ -6,3 +6,6 @@
 # Local backup files
 *.bak
 *.bak-*
+
+# Package build output
+/dist/

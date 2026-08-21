@@ -44,6 +44,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="0.1.1" date="2026-08-21">
+      <description>
+        <p>Improved application icon handling and added Debian packaging.</p>
+        <p xml:lang="de">Verbesserte Anwendungs-Icons und Debian-Paketierung hinzugefügt.</p>
+      </description>
+    </release>
     <release version="0.1.0" date="2026-08-21">
       <description>
         <p>Initial public release of TwoFAuth Client.</p>

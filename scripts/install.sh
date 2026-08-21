@@ -37,13 +37,11 @@ sudo install -Dm644 \
     "data/${APP_ID}.desktop" \
     "/usr/local/share/applications/${APP_ID}.desktop"
 
-echo "Installing application icons..."
+echo "Installing application icon..."
 
-for size in 16 24 32 48 64 128 256; do
-    sudo install -Dm644 \
-        "data/icons/hicolor/${size}x${size}/apps/${APP_ID}.png" \
-        "/usr/local/share/icons/hicolor/${size}x${size}/apps/${APP_ID}.png"
-done
+sudo install -Dm644 \
+    "data/icons/hicolor/256x256/apps/${APP_ID}.png" \
+    "/usr/local/share/icons/hicolor/256x256/apps/${APP_ID}.png"
 
 echo "Installing AppStream metadata..."
 
