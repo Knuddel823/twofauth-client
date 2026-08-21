@@ -46,6 +46,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
     let menu = gtk::gio::Menu::new();
     menu.append(Some(&tr("Settings")), Some("app.settings"));
+    menu.append(Some(&tr("About TwoFAuth Client")), Some("win.about"));
 
     menu_button.set_menu_model(Some(&menu));
     header.pack_end(&menu_button);
@@ -87,6 +88,18 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
         .default_height(640)
         .content(&root)
         .build();
+
+    let about_action = gtk::gio::SimpleAction::new("about", None);
+
+    {
+        let window = window.clone();
+
+        about_action.connect_activate(move |_, _| {
+            show_about_dialog(&window);
+        });
+    }
+
+    window.add_action(&about_action);
 
     let accounts: Rc<RefCell<Vec<TwoFAccount>>> = Rc::new(RefCell::new(Vec::new()));
 
@@ -872,4 +885,32 @@ fn format_otp(code: &str, digits: u32) -> String {
 
         _ => code.to_string(),
     }
+}
+
+fn show_about_dialog(parent: &adw::ApplicationWindow) {
+    let dialog = adw::AboutDialog::builder()
+        .application_name("TwoFAuth Client")
+        .application_icon("de.twofauthclient.TwoFAuthClient")
+        .version(env!("CARGO_PKG_VERSION"))
+        .developer_name("Marcel Müller")
+        .comments(&tr("An unofficial native Linux desktop client for 2FAuth."))
+        .copyright("© 2026 Marcel Müller")
+        .license_type(gtk::License::Gpl30)
+        .website("https://github.com/Knuddel823/twofauth-client")
+        .issue_url("https://github.com/Knuddel823/twofauth-client/issues")
+        .build();
+
+    dialog.set_developers(&["Marcel Müller"]);
+
+    dialog.add_link(
+        &tr("Source code"),
+        "https://github.com/Knuddel823/twofauth-client",
+    );
+
+    dialog.add_link(
+        &tr("Support the project ☕"),
+        "https://buymeacoffee.com/knuddel823",
+    );
+
+    dialog.present(Some(parent));
 }

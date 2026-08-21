@@ -76,3 +76,30 @@ msgstr "Without group"
 
 msgid "digits"
 msgstr "digits"
+
+msgid "What is a personal access token?"
+msgstr "What is a personal access token?"
+
+msgid "How do I get a token?"
+msgstr "How do I get a token?"
+
+msgid "The TwoFAuth Client needs a personal access token to securely access your accounts through the 2FAuth API."
+msgstr "The TwoFAuth Client requires a personal access token (PAT) to access your accounts through the 2FAuth API."
+
+msgid "Open your 2FAuth web interface, go to the settings and create a new personal access token. Copy the generated token and paste it into this field."
+msgstr "Open your 2FAuth web interface and go to Settings → OAuth → Personal Access Tokens. Select “Create new token”, enter a name, and then copy the generated token into this field."
+
+msgid "The token is stored securely in your system keyring and is not written to the TwoFAuth Client configuration file."
+msgstr "The token is stored securely in your system keyring and is not written to the TwoFAuth Client configuration file."
+
+msgid "About TwoFAuth Client"
+msgstr "About TwoFAuth Client"
+
+msgid "An unofficial native Linux desktop client for 2FAuth."
+msgstr "An unofficial native Linux desktop client for 2FAuth."
+
+msgid "Source code"
+msgstr "Source code"
+
+msgid "Support the project ☕"
+msgstr "Support the project ☕"

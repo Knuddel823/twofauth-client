@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=TwoFAuth Client
+Comment=Native desktop client for 2FAuth
+Comment[de]=Nativer Desktop-Client für 2FAuth
+Exec=twofauth-client
+Icon=de.twofauthclient.TwoFAuthClient
+Terminal=false
+Categories=Utility;Security;
+Keywords=2FA;TOTP;HOTP;OTP;Authenticator;TwoFAuth;
+Keywords[de]=2FA;TOTP;HOTP;OTP;Authentifizierung;TwoFAuth;
+StartupNotify=true

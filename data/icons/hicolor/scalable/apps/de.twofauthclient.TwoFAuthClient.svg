@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="128"
+     height="128"
+     viewBox="0 0 128 128">
+
+  <rect
+      x="8"
+      y="8"
+      width="112"
+      height="112"
+      rx="28"
+      fill="#3584e4"/>
+
+  <path
+      d="M64 28
+         C49 28 37 40 37 55
+         C37 67 45 77 56 81
+         L56 98
+         L72 98
+         L72 81
+         C83 77 91 67 91 55
+         C91 40 79 28 64 28 Z"
+      fill="#ffffff"/>
+
+  <circle
+      cx="64"
+      cy="55"
+      r="10"
+      fill="#3584e4"/>
+</svg>

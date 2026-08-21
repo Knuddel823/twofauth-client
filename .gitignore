@@ -1,1 +1,8 @@
 /target
+
+# Generated gettext files
+*.mo
+
+# Local backup files
+*.bak
+*.bak-*

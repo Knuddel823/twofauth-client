@@ -41,6 +41,15 @@ pub fn build_setup_window(app: &adw::Application) -> adw::ApplicationWindow {
 
     let token_label = gtk::Label::new(Some(&tr("Personal access token")));
     token_label.set_halign(gtk::Align::Start);
+    token_label.set_hexpand(true);
+
+    let token_help_button = gtk::Button::from_icon_name("help-about-symbolic");
+    token_help_button.set_tooltip_text(Some(&tr("What is a personal access token?")));
+    token_help_button.set_has_frame(false);
+
+    let token_header = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+    token_header.append(&token_label);
+    token_header.append(&token_help_button);
 
     let token_entry = gtk::PasswordEntry::new();
     token_entry.set_show_peek_icon(true);
@@ -65,7 +74,7 @@ pub fn build_setup_window(app: &adw::Application) -> adw::ApplicationWindow {
     content.append(&description);
     content.append(&server_label);
     content.append(&server_entry);
-    content.append(&token_label);
+    content.append(&token_header);
     content.append(&token_entry);
     content.append(&status);
     content.append(&connect_button);
@@ -83,14 +92,19 @@ pub fn build_setup_window(app: &adw::Application) -> adw::ApplicationWindow {
         .build();
 
     {
+        let window = window.clone();
+
+        token_help_button.connect_clicked(move |_| {
+            show_token_help(&window);
+        });
+    }
+
+    {
         let app = app.clone();
         let window = window.clone();
         let server_entry = server_entry.clone();
         let token_entry = token_entry.clone();
         let status = status.clone();
-
-        // Eigener Clone für die Callback-Closure.
-        // Dadurch vermeiden wir E0505 beim connect_clicked-Aufruf.
         let connect_button_for_click = connect_button.clone();
 
         connect_button.connect_clicked(move |_| {
@@ -196,4 +210,64 @@ pub fn build_setup_window(app: &adw::Application) -> adw::ApplicationWindow {
     }
 
     window
+}
+
+fn show_token_help(parent: &adw::ApplicationWindow) {
+    let dialog = adw::Window::builder()
+        .transient_for(parent)
+        .modal(true)
+        .title(tr("Personal access token"))
+        .default_width(420)
+        .default_height(340)
+        .build();
+
+    let header = adw::HeaderBar::new();
+
+    let title = gtk::Label::new(Some(&tr("Personal access token")));
+    title.add_css_class("title");
+    header.set_title_widget(Some(&title));
+
+    let heading = gtk::Label::new(Some(&tr("How do I get a token?")));
+    heading.add_css_class("title-2");
+    heading.set_halign(gtk::Align::Start);
+
+    let explanation = gtk::Label::new(Some(&tr(
+        "The TwoFAuth Client needs a personal access token to securely access your accounts through the 2FAuth API.",
+    )));
+    explanation.set_wrap(true);
+    explanation.set_halign(gtk::Align::Start);
+    explanation.set_xalign(0.0);
+
+    let steps = gtk::Label::new(Some(&tr(
+        "Open your 2FAuth web interface, go to the settings and create a new personal access token. Copy the generated token and paste it into this field.",
+    )));
+    steps.set_wrap(true);
+    steps.set_halign(gtk::Align::Start);
+    steps.set_xalign(0.0);
+
+    let storage = gtk::Label::new(Some(&tr(
+        "The token is stored securely in your system keyring and is not written to the TwoFAuth Client configuration file.",
+    )));
+    storage.set_wrap(true);
+    storage.set_halign(gtk::Align::Start);
+    storage.set_xalign(0.0);
+    storage.add_css_class("dim-label");
+
+    let content = gtk::Box::new(gtk::Orientation::Vertical, 16);
+    content.set_margin_top(24);
+    content.set_margin_bottom(24);
+    content.set_margin_start(24);
+    content.set_margin_end(24);
+
+    content.append(&heading);
+    content.append(&explanation);
+    content.append(&steps);
+    content.append(&storage);
+
+    let root = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    root.append(&header);
+    root.append(&content);
+
+    dialog.set_content(Some(&root));
+    dialog.present();
 }
