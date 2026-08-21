@@ -43,7 +43,6 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
     menu.append(Some(&tr("Settings")), Some("app.settings"));
 
     menu_button.set_menu_model(Some(&menu));
-
     header.pack_end(&menu_button);
 
     let search = gtk::SearchEntry::new();
@@ -277,6 +276,10 @@ fn rebuild_account_list(list: &gtk::ListBox, accounts: &[TwoFAccount], search_te
 }
 
 fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
+    let otp_type = account.otp_type.to_lowercase();
+    let is_totp = otp_type == "totp";
+
+    let digits = account.digits.max(1);
     let period = account.period.unwrap_or(30).max(1);
 
     let dialog = adw::Window::builder()
@@ -284,7 +287,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
         .modal(true)
         .title(&account.service)
         .default_width(360)
-        .default_height(340)
+        .default_height(360)
         .build();
 
     let header = adw::HeaderBar::new();
@@ -312,9 +315,23 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     let progress = gtk::ProgressBar::new();
     progress.set_fraction(0.0);
     progress.set_hexpand(true);
+    progress.set_visible(is_totp);
 
     let countdown = gtk::Label::new(None);
     countdown.add_css_class("dim-label");
+    countdown.set_visible(is_totp);
+
+    let counter_label = gtk::Label::new(None);
+    counter_label.add_css_class("dim-label");
+    counter_label.set_visible(!is_totp);
+
+    if !is_totp {
+        if let Some(counter) = account.counter {
+            counter_label.set_text(&format!("{}: {}", tr("Counter"), counter));
+        } else {
+            counter_label.set_text("HOTP");
+        }
+    }
 
     let copy_button = gtk::Button::with_label(&tr("Copy"));
 
@@ -333,6 +350,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     content.append(&otp_label);
     content.append(&progress);
     content.append(&countdown);
+    content.append(&counter_label);
     content.append(&copy_button);
 
     let root = gtk::Box::new(gtk::Orientation::Vertical, 0);
@@ -364,6 +382,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
 
     request_otp(
         account.id,
+        digits,
         period,
         &otp_label,
         &copy_button,
@@ -372,7 +391,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
         &request_in_progress,
     );
 
-    {
+    if is_totp {
         let dialog = dialog.clone();
         let otp_label = otp_label.clone();
         let copy_button = copy_button.clone();
@@ -434,6 +453,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
             if should_refresh && !request_in_progress.get() {
                 request_otp(
                     account_id,
+                    digits,
                     period,
                     &otp_label,
                     &copy_button,
@@ -452,6 +472,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
 
 fn request_otp(
     account_id: u64,
+    digits: u32,
     period: u32,
     otp_label: &gtk::Label,
     copy_button: &gtk::Button,
@@ -526,7 +547,7 @@ fn request_otp(
     glib::timeout_add_local(Duration::from_millis(100), move || {
         match receiver.try_recv() {
             Ok(OtpResult::Success(response)) => {
-                let formatted = format_otp(&response.password);
+                let formatted = format_otp(&response.password, digits);
 
                 *raw_code.borrow_mut() = response.password;
 
@@ -577,10 +598,26 @@ fn request_otp(
     });
 }
 
-fn format_otp(code: &str) -> String {
-    if code.len() == 6 && code.chars().all(|character| character.is_ascii_digit()) {
-        format!("{} {}", &code[..3], &code[3..])
-    } else {
-        code.to_string()
+fn format_otp(code: &str, digits: u32) -> String {
+    if !code.chars().all(|character| character.is_ascii_digit()) {
+        return code.to_string();
+    }
+
+    if code.len() != digits as usize {
+        return code.to_string();
+    }
+
+    match code.len() {
+        6 => format!("{} {}", &code[..3], &code[3..]),
+
+        8 => format!("{} {}", &code[..4], &code[4..]),
+
+        length if length > 4 => {
+            let split = length / 2;
+
+            format!("{} {}", &code[..split], &code[split..])
+        }
+
+        _ => code.to_string(),
     }
 }

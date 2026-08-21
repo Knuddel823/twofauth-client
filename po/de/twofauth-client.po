@@ -67,3 +67,6 @@ msgstr "Der gespeicherte Zugriffstoken konnte nicht geladen werden."
 
 msgid "Settings saved successfully."
 msgstr "Einstellungen wurden erfolgreich gespeichert."
+
+msgid "Counter"
+msgstr "Zähler"

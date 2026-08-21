@@ -67,3 +67,6 @@ msgstr "Could not load the stored access token."
 
 msgid "Settings saved successfully."
 msgstr "Settings saved successfully."
+
+msgid "Counter"
+msgstr "Counter"
