@@ -94,4 +94,29 @@ impl TwoFAuthClient {
 
         Ok(otp)
     }
+
+    pub async fn get_icon(&self, icon: &str) -> Result<Vec<u8>> {
+        let url = format!("{}/storage/icons/{}", self.base_url, icon);
+
+        let response = self
+            .client
+            .get(&url)
+            .header("Accept", "image/*")
+            .send()
+            .await
+            .context("Failed to download the 2FAuth account icon")?;
+
+        let status = response.status();
+
+        if !status.is_success() {
+            anyhow::bail!("2FAuth server returned HTTP {} for icon {}", status, icon);
+        }
+
+        let bytes = response
+            .bytes()
+            .await
+            .context("Failed to read the 2FAuth account icon")?;
+
+        Ok(bytes.to_vec())
+    }
 }

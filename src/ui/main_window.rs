@@ -11,6 +11,7 @@ use crate::i18n::tr;
 use crate::models::account::TwoFAccount;
 use crate::storage::config::load_config;
 use crate::storage::keyring::load_token;
+use crate::ui::icon_loader::load_account_icon;
 
 enum LoadResult {
     Success(Vec<TwoFAccount>),
@@ -123,6 +124,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
     std::thread::spawn(move || {
         let config = match load_config() {
             Ok(config) => config,
+
             Err(error) => {
                 let _ = sender.send(LoadResult::Error(error.to_string()));
                 return;
@@ -131,6 +133,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
         let token = match load_token() {
             Ok(token) => token,
+
             Err(error) => {
                 let _ = sender.send(LoadResult::Error(error.to_string()));
                 return;
@@ -141,6 +144,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
         let runtime = match tokio::runtime::Runtime::new() {
             Ok(runtime) => runtime,
+
             Err(error) => {
                 let _ = sender.send(LoadResult::Error(error.to_string()));
                 return;
@@ -156,6 +160,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
             Ok(accounts) => {
                 let _ = sender.send(LoadResult::Success(accounts));
             }
+
             Err(error) => {
                 let _ = sender.send(LoadResult::Error(error.to_string()));
             }
@@ -189,6 +194,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
                 Err(mpsc::TryRecvError::Disconnected) => {
                     status.set_text(&tr("Could not load accounts"));
+
                     glib::ControlFlow::Break
                 }
             }
@@ -218,18 +224,29 @@ fn rebuild_account_list(list: &gtk::ListBox, accounts: &[TwoFAccount], search_te
         let empty = gtk::Label::new(Some(&tr("No accounts found")));
         empty.set_margin_top(24);
         empty.set_margin_bottom(24);
+
         list.append(&empty);
         return;
     }
 
     for account in filtered {
+        let icon = gtk::Image::from_icon_name("dialog-password-symbolic");
+        icon.set_pixel_size(32);
+        icon.set_size_request(40, 40);
+        icon.set_halign(gtk::Align::Center);
+        icon.set_valign(gtk::Align::Center);
+
+        load_account_icon(&icon, account.icon.clone());
+
         let service = gtk::Label::new(Some(&account.service));
         service.set_xalign(0.0);
         service.add_css_class("heading");
+        service.set_ellipsize(gtk::pango::EllipsizeMode::End);
 
         let account_name = gtk::Label::new(Some(&account.account));
         account_name.set_xalign(0.0);
         account_name.add_css_class("dim-label");
+        account_name.set_ellipsize(gtk::pango::EllipsizeMode::End);
 
         let labels = gtk::Box::new(gtk::Orientation::Vertical, 2);
         labels.set_hexpand(true);
@@ -239,14 +256,18 @@ fn rebuild_account_list(list: &gtk::ListBox, accounts: &[TwoFAccount], search_te
         let arrow = gtk::Image::from_icon_name("go-next-symbolic");
 
         let row_content = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+
         row_content.set_margin_top(10);
         row_content.set_margin_bottom(10);
         row_content.set_margin_start(12);
         row_content.set_margin_end(12);
+
+        row_content.append(&icon);
         row_content.append(&labels);
         row_content.append(&arrow);
 
         let row = gtk::ListBoxRow::new();
+
         row.set_widget_name(&account.id.to_string());
         row.set_activatable(true);
         row.set_child(Some(&row_content));
@@ -270,12 +291,21 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
 
     let service = gtk::Label::new(Some(&account.service));
     service.add_css_class("title");
+
     header.set_title_widget(Some(&service));
+
+    let account_icon = gtk::Image::from_icon_name("dialog-password-symbolic");
+
+    account_icon.set_pixel_size(48);
+    account_icon.set_size_request(56, 56);
+
+    load_account_icon(&account_icon, account.icon.clone());
 
     let account_name = gtk::Label::new(Some(&account.account));
     account_name.add_css_class("dim-label");
 
     let otp_label = gtk::Label::new(Some(&tr("Loading code...")));
+
     otp_label.add_css_class("title-1");
     otp_label.set_selectable(true);
 
@@ -287,15 +317,18 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     countdown.add_css_class("dim-label");
 
     let copy_button = gtk::Button::with_label(&tr("Copy"));
+
     copy_button.set_sensitive(false);
     copy_button.add_css_class("suggested-action");
 
     let content = gtk::Box::new(gtk::Orientation::Vertical, 16);
+
     content.set_margin_top(24);
     content.set_margin_bottom(24);
     content.set_margin_start(24);
     content.set_margin_end(24);
 
+    content.append(&account_icon);
     content.append(&account_name);
     content.append(&otp_label);
     content.append(&progress);
@@ -303,13 +336,16 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     content.append(&copy_button);
 
     let root = gtk::Box::new(gtk::Orientation::Vertical, 0);
+
     root.append(&header);
     root.append(&content);
 
     dialog.set_content(Some(&root));
 
     let raw_code = Rc::new(RefCell::new(String::new()));
+
     let sync_state: Rc<RefCell<Option<OtpSyncState>>> = Rc::new(RefCell::new(None));
+
     let request_in_progress = Rc::new(Cell::new(false));
 
     {
@@ -345,6 +381,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
 
         let raw_code = Rc::clone(&raw_code);
         let sync_state = Rc::clone(&sync_state);
+
         let request_in_progress = Rc::clone(&request_in_progress);
 
         let account_id = account.id;
@@ -366,12 +403,15 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
 
                 if let Ok(since_epoch) = current_server_time.duration_since(UNIX_EPOCH) {
                     let server_seconds = since_epoch.as_secs_f64();
+
                     let period_f64 = period as f64;
 
                     let position = server_seconds % period_f64;
+
                     let remaining = period_f64 - position;
 
                     let fraction = (remaining / period_f64).clamp(0.0, 1.0);
+
                     progress.set_fraction(fraction);
 
                     let seconds_left = remaining.ceil() as u64;
@@ -430,6 +470,7 @@ fn request_otp(
     std::thread::spawn(move || {
         let config = match load_config() {
             Ok(config) => config,
+
             Err(error) => {
                 let _ = sender.send(OtpResult::Error(error.to_string()));
                 return;
@@ -438,6 +479,7 @@ fn request_otp(
 
         let token = match load_token() {
             Ok(token) => token,
+
             Err(error) => {
                 let _ = sender.send(OtpResult::Error(error.to_string()));
                 return;
@@ -448,6 +490,7 @@ fn request_otp(
 
         let runtime = match tokio::runtime::Runtime::new() {
             Ok(runtime) => runtime,
+
             Err(error) => {
                 let _ = sender.send(OtpResult::Error(error.to_string()));
                 return;
@@ -456,6 +499,7 @@ fn request_otp(
 
         let result = runtime.block_on(async {
             let client = TwoFAuthClient::new(server_url, token);
+
             client.get_otp(account_id).await
         });
 
@@ -474,7 +518,9 @@ fn request_otp(
     let copy_button = copy_button.clone();
 
     let raw_code = Rc::clone(raw_code);
+
     let sync_state = Rc::clone(sync_state);
+
     let request_in_progress = Rc::clone(request_in_progress);
 
     glib::timeout_add_local(Duration::from_millis(100), move || {
@@ -485,6 +531,7 @@ fn request_otp(
                 *raw_code.borrow_mut() = response.password;
 
                 otp_label.set_text(&formatted);
+
                 copy_button.set_sensitive(true);
 
                 let server_time = response.server_time.unwrap_or_else(SystemTime::now);
@@ -509,6 +556,7 @@ fn request_otp(
                 otp_label.set_text(&format!("{}\n{}", tr("Could not load code"), error));
 
                 copy_button.set_sensitive(false);
+
                 request_in_progress.set(false);
 
                 glib::ControlFlow::Break
@@ -520,6 +568,7 @@ fn request_otp(
                 otp_label.set_text(&tr("Could not load code"));
 
                 copy_button.set_sensitive(false);
+
                 request_in_progress.set(false);
 
                 glib::ControlFlow::Break

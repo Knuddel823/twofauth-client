@@ -2314,6 +2314,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dirs",
+ "gdk-pixbuf",
  "gettext-rs",
  "gtk4",
  "httpdate",
