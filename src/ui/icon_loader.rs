@@ -1,3 +1,5 @@
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::time::Duration;
 
@@ -8,6 +10,9 @@ use gtk::glib;
 use crate::api::client::TwoFAuthClient;
 use crate::storage::config::load_config;
 use crate::storage::keyring::load_token;
+
+const CACHE_DIR_NAME: &str = "twofauth-client";
+const ICON_CACHE_DIR_NAME: &str = "icons";
 
 enum IconResult {
     Success(Vec<u8>),
@@ -20,7 +25,9 @@ pub fn load_account_icon(image: &gtk::Image, icon_name: Option<String>) {
         return;
     };
 
-    if icon_name.trim().is_empty() {
+    let icon_name = icon_name.trim().to_string();
+
+    if icon_name.is_empty() {
         set_fallback_icon(image);
         return;
     }
@@ -28,6 +35,21 @@ pub fn load_account_icon(image: &gtk::Image, icon_name: Option<String>) {
     let (sender, receiver) = mpsc::channel::<IconResult>();
 
     std::thread::spawn(move || {
+        let cache_path = match icon_cache_path(&icon_name) {
+            Some(path) => path,
+            None => {
+                let _ = sender.send(IconResult::Error);
+                return;
+            }
+        };
+
+        if let Ok(bytes) = fs::read(&cache_path) {
+            if !bytes.is_empty() {
+                let _ = sender.send(IconResult::Success(bytes));
+                return;
+            }
+        }
+
         let config = match load_config() {
             Ok(config) => config,
             Err(_) => {
@@ -53,7 +75,12 @@ pub fn load_account_icon(image: &gtk::Image, icon_name: Option<String>) {
 
         match result {
             Ok(bytes) => {
-                let _ = sender.send(IconResult::Success(bytes));
+                if !bytes.is_empty() {
+                    let _ = save_icon_to_cache(&cache_path, &bytes);
+                    let _ = sender.send(IconResult::Success(bytes));
+                } else {
+                    let _ = sender.send(IconResult::Error);
+                }
             }
 
             Err(_) => {
@@ -89,6 +116,30 @@ pub fn load_account_icon(image: &gtk::Image, icon_name: Option<String>) {
             }
         }
     });
+}
+
+fn icon_cache_path(icon_name: &str) -> Option<PathBuf> {
+    let cache_dir = dirs::cache_dir()?
+        .join(CACHE_DIR_NAME)
+        .join(ICON_CACHE_DIR_NAME);
+
+    Some(cache_dir.join(safe_icon_filename(icon_name)))
+}
+
+fn safe_icon_filename(icon_name: &str) -> String {
+    Path::new(icon_name)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("icon")
+        .to_string()
+}
+
+fn save_icon_to_cache(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    fs::write(path, bytes)
 }
 
 fn decode_icon(bytes: &[u8]) -> Option<gdk_pixbuf::Pixbuf> {
