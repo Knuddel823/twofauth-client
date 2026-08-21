@@ -70,3 +70,6 @@ msgstr "Einstellungen wurden erfolgreich gespeichert."
 
 msgid "Counter"
 msgstr "Zähler"
+
+msgid "Without group"
+msgstr "Ohne Gruppe"

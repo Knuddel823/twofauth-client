@@ -9,12 +9,16 @@ use gtk::glib;
 use crate::api::client::{OtpResponse, TwoFAuthClient};
 use crate::i18n::tr;
 use crate::models::account::TwoFAccount;
+use crate::models::group::TwoFGroup;
 use crate::storage::config::load_config;
 use crate::storage::keyring::load_token;
 use crate::ui::icon_loader::load_account_icon;
 
 enum LoadResult {
-    Success(Vec<TwoFAccount>),
+    Success {
+        accounts: Vec<TwoFAccount>,
+        groups: Vec<TwoFGroup>,
+    },
     Error(String),
 }
 
@@ -85,12 +89,20 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
     let accounts: Rc<RefCell<Vec<TwoFAccount>>> = Rc::new(RefCell::new(Vec::new()));
 
+    let groups: Rc<RefCell<Vec<TwoFGroup>>> = Rc::new(RefCell::new(Vec::new()));
+
     {
         let accounts = Rc::clone(&accounts);
+        let groups = Rc::clone(&groups);
         let account_list = account_list.clone();
 
         search.connect_search_changed(move |search| {
-            rebuild_account_list(&account_list, &accounts.borrow(), &search.text());
+            rebuild_account_list(
+                &account_list,
+                &accounts.borrow(),
+                &groups.borrow(),
+                &search.text(),
+            );
         });
     }
 
@@ -152,12 +164,20 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
         let result = runtime.block_on(async {
             let client = TwoFAuthClient::new(server_url, token);
-            client.get_accounts().await
+
+            let accounts = client.get_accounts().await?;
+
+            // Gruppen sind ein optionales Komfort-Feature.
+            // Falls ein älterer 2FAuth-Server den Endpoint nicht anbietet,
+            // funktioniert die Accountliste weiterhin ohne Gruppierung.
+            let groups = client.get_groups().await.unwrap_or_default();
+
+            Ok::<_, anyhow::Error>((accounts, groups))
         });
 
         match result {
-            Ok(accounts) => {
-                let _ = sender.send(LoadResult::Success(accounts));
+            Ok((accounts, groups)) => {
+                let _ = sender.send(LoadResult::Success { accounts, groups });
             }
 
             Err(error) => {
@@ -168,17 +188,27 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
     {
         let accounts = Rc::clone(&accounts);
+        let groups = Rc::clone(&groups);
         let account_list = account_list.clone();
         let status = status.clone();
 
         glib::timeout_add_local(Duration::from_millis(100), move || {
             match receiver.try_recv() {
-                Ok(LoadResult::Success(loaded_accounts)) => {
+                Ok(LoadResult::Success {
+                    accounts: loaded_accounts,
+                    groups: loaded_groups,
+                }) => {
                     *accounts.borrow_mut() = loaded_accounts;
+
+                    // ID 0 ist bei 2FAuth die virtuelle Gruppe "All".
+                    *groups.borrow_mut() = loaded_groups
+                        .into_iter()
+                        .filter(|group| group.id != 0)
+                        .collect();
 
                     status.set_visible(false);
 
-                    rebuild_account_list(&account_list, &accounts.borrow(), "");
+                    rebuild_account_list(&account_list, &accounts.borrow(), &groups.borrow(), "");
 
                     glib::ControlFlow::Break
                 }
@@ -203,14 +233,19 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
     window
 }
 
-fn rebuild_account_list(list: &gtk::ListBox, accounts: &[TwoFAccount], search_text: &str) {
+fn rebuild_account_list(
+    list: &gtk::ListBox,
+    accounts: &[TwoFAccount],
+    groups: &[TwoFGroup],
+    search_text: &str,
+) {
     while let Some(child) = list.first_child() {
         list.remove(&child);
     }
 
     let search_text = search_text.trim().to_lowercase();
 
-    let filtered: Vec<&TwoFAccount> = accounts
+    let filtered_accounts: Vec<&TwoFAccount> = accounts
         .iter()
         .filter(|account| {
             search_text.is_empty()
@@ -219,8 +254,9 @@ fn rebuild_account_list(list: &gtk::ListBox, accounts: &[TwoFAccount], search_te
         })
         .collect();
 
-    if filtered.is_empty() {
+    if filtered_accounts.is_empty() {
         let empty = gtk::Label::new(Some(&tr("No accounts found")));
+
         empty.set_margin_top(24);
         empty.set_margin_bottom(24);
 
@@ -228,58 +264,189 @@ fn rebuild_account_list(list: &gtk::ListBox, accounts: &[TwoFAccount], search_te
         return;
     }
 
-    for account in filtered {
-        let icon = gtk::Image::from_icon_name("dialog-password-symbolic");
-        icon.set_pixel_size(32);
-        icon.set_size_request(40, 40);
-        icon.set_halign(gtk::Align::Center);
-        icon.set_valign(gtk::Align::Center);
+    // Ohne echte Gruppen bleibt die bisherige flache Darstellung bestehen.
+    if groups.is_empty() {
+        for account in filtered_accounts {
+            let row = build_account_row(account);
+            list.append(&row);
+        }
 
-        load_account_icon(&icon, account.icon.clone());
-
-        let service = gtk::Label::new(Some(&account.service));
-        service.set_xalign(0.0);
-        service.add_css_class("heading");
-        service.set_ellipsize(gtk::pango::EllipsizeMode::End);
-
-        let account_name = gtk::Label::new(Some(&account.account));
-        account_name.set_xalign(0.0);
-        account_name.add_css_class("dim-label");
-        account_name.set_ellipsize(gtk::pango::EllipsizeMode::End);
-
-        let labels = gtk::Box::new(gtk::Orientation::Vertical, 2);
-        labels.set_hexpand(true);
-        labels.append(&service);
-        labels.append(&account_name);
-
-        let arrow = gtk::Image::from_icon_name("go-next-symbolic");
-
-        let row_content = gtk::Box::new(gtk::Orientation::Horizontal, 12);
-
-        row_content.set_margin_top(10);
-        row_content.set_margin_bottom(10);
-        row_content.set_margin_start(12);
-        row_content.set_margin_end(12);
-
-        row_content.append(&icon);
-        row_content.append(&labels);
-        row_content.append(&arrow);
-
-        let row = gtk::ListBoxRow::new();
-
-        row.set_widget_name(&account.id.to_string());
-        row.set_activatable(true);
-        row.set_child(Some(&row_content));
-
-        list.append(&row);
+        return;
     }
+
+    for group in groups {
+        let grouped_accounts: Vec<&TwoFAccount> = filtered_accounts
+            .iter()
+            .copied()
+            .filter(|account| account.group_id == Some(group.id))
+            .collect();
+
+        if grouped_accounts.is_empty() {
+            continue;
+        }
+
+        let visible_count = grouped_accounts.len() as u64;
+
+        let count = if search_text.is_empty() {
+            group.twofaccounts_count
+        } else {
+            visible_count
+        };
+
+        append_collapsible_group(list, &group.name, count, grouped_accounts);
+    }
+
+    let known_group_ids: Vec<u64> = groups.iter().map(|group| group.id).collect();
+
+    let ungrouped_accounts: Vec<&TwoFAccount> = filtered_accounts
+        .iter()
+        .copied()
+        .filter(|account| match account.group_id {
+            None => true,
+
+            Some(group_id) => !known_group_ids.contains(&group_id),
+        })
+        .collect();
+
+    if !ungrouped_accounts.is_empty() {
+        append_collapsible_group(
+            list,
+            &tr("Without group"),
+            ungrouped_accounts.len() as u64,
+            ungrouped_accounts,
+        );
+    }
+}
+
+fn append_collapsible_group(
+    list: &gtk::ListBox,
+    name: &str,
+    count: u64,
+    accounts: Vec<&TwoFAccount>,
+) {
+    let expanded = Rc::new(Cell::new(true));
+
+    let arrow = gtk::Image::from_icon_name("pan-down-symbolic");
+
+    arrow.set_pixel_size(16);
+
+    let title = gtk::Label::new(Some(&format!("{} ({})", name, count)));
+
+    title.set_xalign(0.0);
+    title.add_css_class("heading");
+    title.set_hexpand(true);
+
+    let header_content = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+
+    header_content.set_margin_top(8);
+    header_content.set_margin_bottom(8);
+    header_content.set_margin_start(12);
+    header_content.set_margin_end(12);
+
+    header_content.append(&arrow);
+    header_content.append(&title);
+
+    let group_button = gtk::Button::new();
+    group_button.set_child(Some(&header_content));
+    group_button.set_has_frame(false);
+    group_button.set_hexpand(true);
+
+    let header_row = gtk::ListBoxRow::new();
+    header_row.set_activatable(false);
+    header_row.set_selectable(false);
+    header_row.set_child(Some(&group_button));
+
+    list.append(&header_row);
+
+    let account_rows: Vec<gtk::ListBoxRow> = accounts.into_iter().map(build_account_row).collect();
+
+    for row in &account_rows {
+        list.append(row);
+    }
+
+    {
+        let expanded = Rc::clone(&expanded);
+        let arrow = arrow.clone();
+
+        let account_rows: Vec<gtk::ListBoxRow> = account_rows.iter().cloned().collect();
+
+        group_button.connect_clicked(move |_| {
+            let new_state = !expanded.get();
+            expanded.set(new_state);
+
+            for row in &account_rows {
+                row.set_visible(new_state);
+            }
+
+            if new_state {
+                arrow.set_icon_name(Some("pan-down-symbolic"));
+            } else {
+                arrow.set_icon_name(Some("pan-end-symbolic"));
+            }
+        });
+    }
+}
+
+fn build_account_row(account: &TwoFAccount) -> gtk::ListBoxRow {
+    let icon = gtk::Image::from_icon_name("dialog-password-symbolic");
+
+    icon.set_pixel_size(32);
+    icon.set_size_request(40, 40);
+    icon.set_halign(gtk::Align::Center);
+    icon.set_valign(gtk::Align::Center);
+
+    load_account_icon(&icon, account.icon.clone());
+
+    let service = gtk::Label::new(Some(&account.service));
+
+    service.set_xalign(0.0);
+    service.add_css_class("heading");
+
+    service.set_ellipsize(gtk::pango::EllipsizeMode::End);
+
+    let account_name = gtk::Label::new(Some(&account.account));
+
+    account_name.set_xalign(0.0);
+    account_name.add_css_class("dim-label");
+
+    account_name.set_ellipsize(gtk::pango::EllipsizeMode::End);
+
+    let labels = gtk::Box::new(gtk::Orientation::Vertical, 2);
+
+    labels.set_hexpand(true);
+    labels.append(&service);
+    labels.append(&account_name);
+
+    let arrow = gtk::Image::from_icon_name("go-next-symbolic");
+
+    let row_content = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+
+    row_content.set_margin_top(10);
+    row_content.set_margin_bottom(10);
+    row_content.set_margin_start(12);
+    row_content.set_margin_end(12);
+
+    row_content.append(&icon);
+    row_content.append(&labels);
+    row_content.append(&arrow);
+
+    let row = gtk::ListBoxRow::new();
+
+    row.set_widget_name(&account.id.to_string());
+
+    row.set_activatable(true);
+    row.set_child(Some(&row_content));
+
+    row
 }
 
 fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     let otp_type = account.otp_type.to_lowercase();
+
     let is_totp = otp_type == "totp";
 
     let digits = account.digits.max(1);
+
     let period = account.period.unwrap_or(30).max(1);
 
     let dialog = adw::Window::builder()
@@ -293,6 +460,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     let header = adw::HeaderBar::new();
 
     let service = gtk::Label::new(Some(&account.service));
+
     service.add_css_class("title");
 
     header.set_title_widget(Some(&service));
@@ -305,6 +473,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     load_account_icon(&account_icon, account.icon.clone());
 
     let account_name = gtk::Label::new(Some(&account.account));
+
     account_name.add_css_class("dim-label");
 
     let otp_label = gtk::Label::new(Some(&tr("Loading code...")));
@@ -313,15 +482,18 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     otp_label.set_selectable(true);
 
     let progress = gtk::ProgressBar::new();
+
     progress.set_fraction(0.0);
     progress.set_hexpand(true);
     progress.set_visible(is_totp);
 
     let countdown = gtk::Label::new(None);
+
     countdown.add_css_class("dim-label");
     countdown.set_visible(is_totp);
 
     let counter_label = gtk::Label::new(None);
+
     counter_label.add_css_class("dim-label");
     counter_label.set_visible(!is_totp);
 
@@ -399,6 +571,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
         let countdown = countdown.clone();
 
         let raw_code = Rc::clone(&raw_code);
+
         let sync_state = Rc::clone(&sync_state);
 
         let request_in_progress = Rc::clone(&request_in_progress);
@@ -494,6 +667,7 @@ fn request_otp(
 
             Err(error) => {
                 let _ = sender.send(OtpResult::Error(error.to_string()));
+
                 return;
             }
         };
@@ -503,6 +677,7 @@ fn request_otp(
 
             Err(error) => {
                 let _ = sender.send(OtpResult::Error(error.to_string()));
+
                 return;
             }
         };
@@ -514,6 +689,7 @@ fn request_otp(
 
             Err(error) => {
                 let _ = sender.send(OtpResult::Error(error.to_string()));
+
                 return;
             }
         };
@@ -536,6 +712,7 @@ fn request_otp(
     });
 
     let otp_label = otp_label.clone();
+
     let copy_button = copy_button.clone();
 
     let raw_code = Rc::clone(raw_code);
@@ -608,9 +785,13 @@ fn format_otp(code: &str, digits: u32) -> String {
     }
 
     match code.len() {
-        6 => format!("{} {}", &code[..3], &code[3..]),
+        6 => {
+            format!("{} {}", &code[..3], &code[3..])
+        }
 
-        8 => format!("{} {}", &code[..4], &code[4..]),
+        8 => {
+            format!("{} {}", &code[..4], &code[4..])
+        }
 
         length if length > 4 => {
             let split = length / 2;

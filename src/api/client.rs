@@ -5,6 +5,7 @@ use reqwest::{Client, StatusCode};
 use serde::Deserialize;
 
 use crate::models::account::TwoFAccount;
+use crate::models::group::TwoFGroup;
 
 #[derive(Debug, Deserialize)]
 pub struct OtpResponse {
@@ -55,6 +56,34 @@ impl TwoFAuthClient {
             .json::<Vec<TwoFAccount>>()
             .await
             .context("Failed to parse the 2FAuth account list")
+    }
+
+    pub async fn get_groups(&self) -> Result<Vec<TwoFGroup>> {
+        let url = format!("{}/api/v1/groups", self.base_url);
+
+        let response = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.token)
+            .header("Accept", "application/json")
+            .send()
+            .await
+            .context("Failed to request groups from the 2FAuth server")?;
+
+        let status = response.status();
+
+        if status == StatusCode::UNAUTHORIZED {
+            anyhow::bail!("Authentication failed: invalid or expired token");
+        }
+
+        if !status.is_success() {
+            anyhow::bail!("2FAuth server returned HTTP {} for groups", status);
+        }
+
+        response
+            .json::<Vec<TwoFGroup>>()
+            .await
+            .context("Failed to parse the 2FAuth group list")
     }
 
     pub async fn get_otp(&self, account_id: u64) -> Result<OtpResponse> {

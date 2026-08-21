@@ -70,3 +70,6 @@ msgstr "Settings saved successfully."
 
 msgid "Counter"
 msgstr "Counter"
+
+msgid "Without group"
+msgstr "Without group"
