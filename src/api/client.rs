@@ -1,3 +1,5 @@
+use std::time::SystemTime;
+
 use anyhow::{Context, Result};
 use reqwest::{Client, StatusCode};
 use serde::Deserialize;
@@ -7,6 +9,9 @@ use crate::models::account::TwoFAccount;
 #[derive(Debug, Deserialize)]
 pub struct OtpResponse {
     pub password: String,
+
+    #[serde(skip)]
+    pub server_time: Option<SystemTime>,
 }
 
 pub struct TwoFAuthClient {
@@ -74,9 +79,19 @@ impl TwoFAuthClient {
             anyhow::bail!("2FAuth server returned HTTP {}", status);
         }
 
-        response
+        let server_time = response
+            .headers()
+            .get(reqwest::header::DATE)
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| httpdate::parse_http_date(value).ok());
+
+        let mut otp = response
             .json::<OtpResponse>()
             .await
-            .context("Failed to parse the OTP response")
+            .context("Failed to parse the OTP response")?;
+
+        otp.server_time = server_time;
+
+        Ok(otp)
     }
 }

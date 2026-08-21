@@ -1,49 +1,21 @@
 mod api;
+mod i18n;
 mod models;
+mod ui;
 
-use anyhow::{Context, Result};
-use api::client::TwoFAuthClient;
+use adw::prelude::*;
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    println!("TwoFAuth Client v{}", env!("CARGO_PKG_VERSION"));
+fn main() {
+    i18n::init();
 
-    let server_url =
-        std::env::var("TWOFAUTH_URL").context("TWOFAUTH_URL environment variable is not set")?;
+    let app = adw::Application::builder()
+        .application_id("de.twofauthclient.TwoFAuthClient")
+        .build();
 
-    let token = std::env::var("TWOFAUTH_TOKEN")
-        .context("TWOFAUTH_TOKEN environment variable is not set")?;
+    app.connect_activate(|app| {
+        let window = ui::main_window::build_main_window(app);
+        window.present();
+    });
 
-    let client = TwoFAuthClient::new(server_url, token);
-
-    let args: Vec<String> = std::env::args().collect();
-
-    if args.len() > 1 {
-        let account_id: u64 = args[1].parse().context("Account ID must be a number")?;
-
-        let otp = client.get_otp(account_id).await?;
-
-        println!("OTP: {}", otp.password);
-
-        return Ok(());
-    }
-
-    println!("Connecting to 2FAuth...");
-
-    let accounts = client.get_accounts().await?;
-
-    println!("Found {} accounts:", accounts.len());
-
-    for account in accounts {
-        println!(
-            "  {:>3}  {:<25} {}",
-            account.id, account.service, account.account
-        );
-    }
-
-    println!();
-    println!("Run with an account ID to request an OTP.");
-    println!("Example: cargo run -- 14");
-
-    Ok(())
+    app.run();
 }

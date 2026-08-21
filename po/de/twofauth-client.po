@@ -1,0 +1,48 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TwoFAuth Client 0.1.0\n"
+"Language: de\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "TwoFAuth Client"
+msgstr "TwoFAuth Client"
+
+msgid "Search accounts..."
+msgstr "Accounts durchsuchen..."
+
+msgid "Loading accounts..."
+msgstr "Accounts werden geladen..."
+
+msgid "Copy"
+msgstr "Kopieren"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Language"
+msgstr "Sprache"
+
+msgid "System default"
+msgstr "Systemstandard"
+
+msgid "Connection failed"
+msgstr "Verbindung fehlgeschlagen"
+
+msgid "No accounts found"
+msgstr "Keine Accounts gefunden"
+
+msgid "Could not load accounts"
+msgstr "Accounts konnten nicht geladen werden"
+
+msgid "Loading code..."
+msgstr "Code wird geladen..."
+
+msgid "Could not load code"
+msgstr "Code konnte nicht geladen werden"
+
+msgid "Valid for"
+msgstr "Noch"
+
+msgid "seconds"
+msgstr "Sekunden gültig"
