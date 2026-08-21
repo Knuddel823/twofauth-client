@@ -73,3 +73,6 @@ msgstr "Counter"
 
 msgid "Without group"
 msgstr "Without group"
+
+msgid "digits"
+msgstr "digits"

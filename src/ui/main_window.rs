@@ -12,6 +12,7 @@ use crate::models::account::TwoFAccount;
 use crate::models::group::TwoFGroup;
 use crate::storage::config::load_config;
 use crate::storage::keyring::load_token;
+use crate::storage::ui_state::{UiState, load_ui_state, save_ui_state};
 use crate::ui::icon_loader::load_account_icon;
 
 enum LoadResult {
@@ -91,9 +92,12 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
     let groups: Rc<RefCell<Vec<TwoFGroup>>> = Rc::new(RefCell::new(Vec::new()));
 
+    let ui_state: Rc<RefCell<UiState>> = Rc::new(RefCell::new(load_ui_state().unwrap_or_default()));
+
     {
         let accounts = Rc::clone(&accounts);
         let groups = Rc::clone(&groups);
+        let ui_state = Rc::clone(&ui_state);
         let account_list = account_list.clone();
 
         search.connect_search_changed(move |search| {
@@ -102,6 +106,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
                 &accounts.borrow(),
                 &groups.borrow(),
                 &search.text(),
+                &ui_state,
             );
         });
     }
@@ -167,9 +172,6 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
             let accounts = client.get_accounts().await?;
 
-            // Gruppen sind ein optionales Komfort-Feature.
-            // Falls ein älterer 2FAuth-Server den Endpoint nicht anbietet,
-            // funktioniert die Accountliste weiterhin ohne Gruppierung.
             let groups = client.get_groups().await.unwrap_or_default();
 
             Ok::<_, anyhow::Error>((accounts, groups))
@@ -189,6 +191,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
     {
         let accounts = Rc::clone(&accounts);
         let groups = Rc::clone(&groups);
+        let ui_state = Rc::clone(&ui_state);
         let account_list = account_list.clone();
         let status = status.clone();
 
@@ -200,7 +203,6 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
                 }) => {
                     *accounts.borrow_mut() = loaded_accounts;
 
-                    // ID 0 ist bei 2FAuth die virtuelle Gruppe "All".
                     *groups.borrow_mut() = loaded_groups
                         .into_iter()
                         .filter(|group| group.id != 0)
@@ -208,7 +210,13 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
                     status.set_visible(false);
 
-                    rebuild_account_list(&account_list, &accounts.borrow(), &groups.borrow(), "");
+                    rebuild_account_list(
+                        &account_list,
+                        &accounts.borrow(),
+                        &groups.borrow(),
+                        "",
+                        &ui_state,
+                    );
 
                     glib::ControlFlow::Break
                 }
@@ -238,12 +246,14 @@ fn rebuild_account_list(
     accounts: &[TwoFAccount],
     groups: &[TwoFGroup],
     search_text: &str,
+    ui_state: &Rc<RefCell<UiState>>,
 ) {
     while let Some(child) = list.first_child() {
         list.remove(&child);
     }
 
     let search_text = search_text.trim().to_lowercase();
+    let searching = !search_text.is_empty();
 
     let filtered_accounts: Vec<&TwoFAccount> = accounts
         .iter()
@@ -264,7 +274,6 @@ fn rebuild_account_list(
         return;
     }
 
-    // Ohne echte Gruppen bleibt die bisherige flache Darstellung bestehen.
     if groups.is_empty() {
         for account in filtered_accounts {
             let row = build_account_row(account);
@@ -287,13 +296,21 @@ fn rebuild_account_list(
 
         let visible_count = grouped_accounts.len() as u64;
 
-        let count = if search_text.is_empty() {
-            group.twofaccounts_count
-        } else {
+        let count = if searching {
             visible_count
+        } else {
+            group.twofaccounts_count
         };
 
-        append_collapsible_group(list, &group.name, count, grouped_accounts);
+        append_collapsible_group(
+            list,
+            &group.name,
+            count,
+            grouped_accounts,
+            Some(group.id),
+            ui_state,
+            !searching,
+        );
     }
 
     let known_group_ids: Vec<u64> = groups.iter().map(|group| group.id).collect();
@@ -314,6 +331,9 @@ fn rebuild_account_list(
             &tr("Without group"),
             ungrouped_accounts.len() as u64,
             ungrouped_accounts,
+            None,
+            ui_state,
+            !searching,
         );
     }
 }
@@ -323,10 +343,28 @@ fn append_collapsible_group(
     name: &str,
     count: u64,
     accounts: Vec<&TwoFAccount>,
+    group_id: Option<u64>,
+    ui_state: &Rc<RefCell<UiState>>,
+    remember_state: bool,
 ) {
-    let expanded = Rc::new(Cell::new(true));
+    let initially_collapsed = if remember_state {
+        let state = ui_state.borrow();
 
-    let arrow = gtk::Image::from_icon_name("pan-down-symbolic");
+        match group_id {
+            Some(id) => state.is_group_collapsed(id),
+            None => state.ungrouped_collapsed,
+        }
+    } else {
+        false
+    };
+
+    let expanded = Rc::new(Cell::new(!initially_collapsed));
+
+    let arrow = gtk::Image::from_icon_name(if initially_collapsed {
+        "pan-end-symbolic"
+    } else {
+        "pan-down-symbolic"
+    });
 
     arrow.set_pixel_size(16);
 
@@ -361,12 +399,14 @@ fn append_collapsible_group(
     let account_rows: Vec<gtk::ListBoxRow> = accounts.into_iter().map(build_account_row).collect();
 
     for row in &account_rows {
+        row.set_visible(!initially_collapsed);
         list.append(row);
     }
 
     {
         let expanded = Rc::clone(&expanded);
         let arrow = arrow.clone();
+        let ui_state = Rc::clone(ui_state);
 
         let account_rows: Vec<gtk::ListBoxRow> = account_rows.iter().cloned().collect();
 
@@ -382,6 +422,26 @@ fn append_collapsible_group(
                 arrow.set_icon_name(Some("pan-down-symbolic"));
             } else {
                 arrow.set_icon_name(Some("pan-end-symbolic"));
+            }
+
+            if remember_state {
+                {
+                    let mut state = ui_state.borrow_mut();
+
+                    match group_id {
+                        Some(id) => {
+                            state.set_group_collapsed(id, !new_state);
+                        }
+
+                        None => {
+                            state.set_ungrouped_collapsed(!new_state);
+                        }
+                    }
+                }
+
+                if let Err(error) = save_ui_state(&ui_state.borrow()) {
+                    eprintln!("Could not save UI state: {}", error);
+                }
             }
         });
     }
@@ -454,7 +514,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
         .modal(true)
         .title(&account.service)
         .default_width(360)
-        .default_height(360)
+        .default_height(390)
         .build();
 
     let header = adw::HeaderBar::new();
@@ -475,6 +535,16 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     let account_name = gtk::Label::new(Some(&account.account));
 
     account_name.add_css_class("dim-label");
+
+    let details = gtk::Label::new(Some(&format!(
+        "{} · {} · {} {}",
+        account.otp_type.to_uppercase(),
+        account.algorithm.to_uppercase(),
+        digits,
+        tr("digits")
+    )));
+
+    details.add_css_class("dim-label");
 
     let otp_label = gtk::Label::new(Some(&tr("Loading code...")));
 
@@ -510,7 +580,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     copy_button.set_sensitive(false);
     copy_button.add_css_class("suggested-action");
 
-    let content = gtk::Box::new(gtk::Orientation::Vertical, 16);
+    let content = gtk::Box::new(gtk::Orientation::Vertical, 14);
 
     content.set_margin_top(24);
     content.set_margin_bottom(24);
@@ -519,6 +589,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
 
     content.append(&account_icon);
     content.append(&account_name);
+    content.append(&details);
     content.append(&otp_label);
     content.append(&progress);
     content.append(&countdown);

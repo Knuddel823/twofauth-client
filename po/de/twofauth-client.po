@@ -73,3 +73,6 @@ msgstr "Zähler"
 
 msgid "Without group"
 msgstr "Ohne Gruppe"
+
+msgid "digits"
+msgstr "Stellen"
