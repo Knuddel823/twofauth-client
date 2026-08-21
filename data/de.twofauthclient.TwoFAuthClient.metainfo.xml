@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>de.twofauthclient.TwoFAuthClient</id>
+
+  <name>TwoFAuth Client</name>
+  <summary>Native Linux desktop client for 2FAuth</summary>
+  <summary xml:lang="de">Nativer Linux-Desktop-Client für 2FAuth</summary>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <description>
+    <p>
+      TwoFAuth Client is an unofficial native Linux desktop client for
+      accessing accounts stored on a self-hosted 2FAuth server.
+    </p>
+    <p>
+      The application is deliberately read-oriented. It displays existing
+      accounts and retrieves OTP codes, but does not create, modify or delete
+      2FAuth accounts.
+    </p>
+
+    <p xml:lang="de">
+      TwoFAuth Client ist ein inoffizieller nativer Linux-Desktop-Client
+      für Konten auf einem selbst gehosteten 2FAuth-Server.
+    </p>
+    <p xml:lang="de">
+      Die Anwendung ist bewusst auf lesenden Zugriff ausgelegt. Sie zeigt
+      vorhandene Konten an und ruft OTP-Codes ab, erstellt, verändert oder
+      löscht jedoch keine 2FAuth-Konten.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">de.twofauthclient.TwoFAuthClient.desktop</launchable>
+
+  <url type="homepage">https://github.com/Knuddel823/twofauth-client</url>
+  <url type="bugtracker">https://github.com/Knuddel823/twofauth-client/issues</url>
+  <url type="donation">https://buymeacoffee.com/knuddel823</url>
+
+  <developer id="de.twofauthclient">
+    <name>Marcel Müller</name>
+  </developer>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="0.1.0" date="2026-08-21">
+      <description>
+        <p>Initial public release of TwoFAuth Client.</p>
+        <p xml:lang="de">Erste öffentliche Version von TwoFAuth Client.</p>
+      </description>
+    </release>
+  </releases>
+</component>

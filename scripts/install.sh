@@ -37,11 +37,19 @@ sudo install -Dm644 \
     "data/${APP_ID}.desktop" \
     "/usr/local/share/applications/${APP_ID}.desktop"
 
-echo "Installing application icon..."
+echo "Installing application icons..."
+
+for size in 16 24 32 48 64 128 256; do
+    sudo install -Dm644 \
+        "data/icons/hicolor/${size}x${size}/apps/${APP_ID}.png" \
+        "/usr/local/share/icons/hicolor/${size}x${size}/apps/${APP_ID}.png"
+done
+
+echo "Installing AppStream metadata..."
 
 sudo install -Dm644 \
-    "data/icons/hicolor/scalable/apps/${APP_ID}.svg" \
-    "/usr/local/share/icons/hicolor/scalable/apps/${APP_ID}.svg"
+    "data/${APP_ID}.metainfo.xml" \
+    "/usr/local/share/metainfo/${APP_ID}.metainfo.xml"
 
 echo "Installing German translation..."
 
