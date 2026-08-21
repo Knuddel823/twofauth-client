@@ -9,6 +9,8 @@ use gtk::glib;
 use crate::api::client::{OtpResponse, TwoFAuthClient};
 use crate::i18n::tr;
 use crate::models::account::TwoFAccount;
+use crate::storage::config::load_config;
+use crate::storage::keyring::load_token;
 
 enum LoadResult {
     Success(Vec<TwoFAccount>),
@@ -109,21 +111,23 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
     let (sender, receiver) = mpsc::channel::<LoadResult>();
 
     std::thread::spawn(move || {
-        let server_url = match std::env::var("TWOFAUTH_URL") {
-            Ok(value) => value,
-            Err(_) => {
-                let _ = sender.send(LoadResult::Error("TWOFAUTH_URL is not set".to_string()));
+        let config = match load_config() {
+            Ok(config) => config,
+            Err(error) => {
+                let _ = sender.send(LoadResult::Error(error.to_string()));
                 return;
             }
         };
 
-        let token = match std::env::var("TWOFAUTH_TOKEN") {
-            Ok(value) => value,
-            Err(_) => {
-                let _ = sender.send(LoadResult::Error("TWOFAUTH_TOKEN is not set".to_string()));
+        let token = match load_token() {
+            Ok(token) => token,
+            Err(error) => {
+                let _ = sender.send(LoadResult::Error(error.to_string()));
                 return;
             }
         };
+
+        let server_url = config.server_url;
 
         let runtime = match tokio::runtime::Runtime::new() {
             Ok(runtime) => runtime,
@@ -414,21 +418,23 @@ fn request_otp(
     let (sender, receiver) = mpsc::channel::<OtpResult>();
 
     std::thread::spawn(move || {
-        let server_url = match std::env::var("TWOFAUTH_URL") {
-            Ok(value) => value,
-            Err(_) => {
-                let _ = sender.send(OtpResult::Error("TWOFAUTH_URL is not set".to_string()));
+        let config = match load_config() {
+            Ok(config) => config,
+            Err(error) => {
+                let _ = sender.send(OtpResult::Error(error.to_string()));
                 return;
             }
         };
 
-        let token = match std::env::var("TWOFAUTH_TOKEN") {
-            Ok(value) => value,
-            Err(_) => {
-                let _ = sender.send(OtpResult::Error("TWOFAUTH_TOKEN is not set".to_string()));
+        let token = match load_token() {
+            Ok(token) => token,
+            Err(error) => {
+                let _ = sender.send(OtpResult::Error(error.to_string()));
                 return;
             }
         };
+
+        let server_url = config.server_url;
 
         let runtime = match tokio::runtime::Runtime::new() {
             Ok(runtime) => runtime,
