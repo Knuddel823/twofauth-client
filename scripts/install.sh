@@ -3,6 +3,7 @@
 set -euo pipefail
 
 APP_ID="de.twofauthclient.TwoFAuthClient"
+ICON_NAME="twofauth-client"
 BINARY_NAME="twofauth-client"
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -40,7 +41,7 @@ echo "Installing application icon..."
 
 sudo install -Dm644 \
     "data/icons/hicolor/256x256/apps/${APP_ID}.png" \
-    "/usr/local/share/icons/hicolor/256x256/apps/${APP_ID}.png"
+    "/usr/local/share/icons/hicolor/256x256/apps/${ICON_NAME}.png"
 
 echo "Installing AppStream metadata..."
 

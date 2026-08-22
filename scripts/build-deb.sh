@@ -3,6 +3,7 @@
 set -euo pipefail
 
 APP_ID="de.twofauthclient.TwoFAuthClient"
+ICON_NAME="twofauth-client"
 PACKAGE_NAME="twofauth-client"
 VERSION="$(grep '^version = ' Cargo.toml | head -1 | cut -d '"' -f2)"
 ARCH="$(dpkg --print-architecture)"
@@ -62,7 +63,7 @@ done
 
 install -Dm644 \
     "data/icons/hicolor/256x256/apps/${APP_ID}.png" \
-    "$BUILD_ROOT/usr/share/icons/hicolor/256x256/apps/${APP_ID}.png"
+    "$BUILD_ROOT/usr/share/icons/hicolor/256x256/apps/${ICON_NAME}.png"
 
 cat > "$BUILD_ROOT/DEBIAN/control" <<EOFCONTROL
 Package: ${PACKAGE_NAME}

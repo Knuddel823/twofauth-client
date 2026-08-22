@@ -1,6 +1,6 @@
 [package]
 name = "twofauth-client"
-version = "0.1.4"
+version = "0.1.5"
 license = "GPL-3.0-or-later"
 description = "Unofficial native Linux desktop client for 2FAuth"
 repository = "https://github.com/Knuddel823/twofauth-client"

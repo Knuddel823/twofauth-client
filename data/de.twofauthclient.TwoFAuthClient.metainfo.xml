@@ -44,6 +44,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="0.1.5" date="2026-08-22">
+      <description>
+        <p>Fixed application icon integration on GNOME desktops.</p>
+        <p xml:lang="de">Die Integration des Anwendungssymbols auf GNOME-Desktops wurde korrigiert.</p>
+      </description>
+    </release>
     <release version="0.1.4" date="2026-08-22">
       <description>
         <p>Improved connection security, reliability and error handling. HTTPS is now required by default, insecure HTTP requires explicit confirmation, network requests use timeouts and shared runtime resources, and several robustness issues were fixed.</p>
