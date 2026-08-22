@@ -37,7 +37,7 @@ read-oriented desktop client for existing 2FAuth installations.
 - Display OTP type, algorithm and digit count
 - Configure, test and reset the 2FAuth connection
 - Built-in help for creating a Personal Access Token
-- German and English interface
+- English, German, French, Spanish and Portuguese interface
 - Native GTK4/libadwaita user interface
 
 ## Read-oriented by design
@@ -233,7 +233,6 @@ left untouched.
 
 Possible future improvements include:
 
-- Debian packaging
 - Flatpak packaging
 - GitHub Actions for automated builds
 - additional translations
