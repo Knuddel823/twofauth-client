@@ -207,6 +207,10 @@ The application follows the system language by default. A language can also
 be selected manually in the application settings. Language changes take
 effect after restarting TwoFAuth Client.
 
+> **Translation notice:** Some translations were created with the assistance
+> of machine translation and may contain inaccuracies. Native speakers are
+> welcome to report translation issues or suggest improvements.
+
 Translation source files are located in the `po/` directory.
 
 Compiled `.mo` files are generated during installation and are not
