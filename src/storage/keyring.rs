@@ -4,8 +4,12 @@ use keyring::v1::Entry;
 const SERVICE_NAME: &str = "twofauth-client";
 const TOKEN_NAME: &str = "api-token";
 
+fn credential_entry(service: &str, username: &str) -> Result<Entry> {
+    Entry::new(service, username).context("Failed to open the system keyring")
+}
+
 fn token_entry() -> Result<Entry> {
-    Entry::new(SERVICE_NAME, TOKEN_NAME).context("Failed to open the system keyring")
+    credential_entry(SERVICE_NAME, TOKEN_NAME)
 }
 
 pub fn save_token(token: &str) -> Result<()> {
@@ -36,16 +40,25 @@ pub fn delete_token() -> Result<()> {
 mod tests {
     use super::*;
 
+    const TEST_SERVICE_NAME: &str = "twofauth-client-tests";
+    const TEST_TOKEN_NAME: &str = "api-token-test";
+    const TEST_TOKEN: &str = "twofauth-client-keyring-test";
+
     #[test]
     fn keyring_roundtrip() {
-        const TEST_TOKEN: &str = "twofauth-client-keyring-test";
+        let entry = credential_entry(TEST_SERVICE_NAME, TEST_TOKEN_NAME)
+            .expect("Could not open test keyring entry");
 
-        save_token(TEST_TOKEN).expect("Could not save test token");
+        entry
+            .set_password(TEST_TOKEN)
+            .expect("Could not save test token");
 
-        let loaded = load_token().expect("Could not load test token");
+        let loaded = entry.get_password().expect("Could not load test token");
 
         assert_eq!(loaded, TEST_TOKEN);
 
-        delete_token().expect("Could not delete test token");
+        entry
+            .delete_credential()
+            .expect("Could not delete test token");
     }
 }
