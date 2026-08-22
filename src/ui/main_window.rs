@@ -570,10 +570,25 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     progress.set_hexpand(true);
     progress.set_visible(is_totp);
 
-    let countdown = gtk::Label::new(None);
+    let countdown_box = gtk::Box::new(gtk::Orientation::Horizontal, 4);
 
-    countdown.add_css_class("dim-label");
-    countdown.set_visible(is_totp);
+    countdown_box.set_halign(gtk::Align::Center);
+    countdown_box.set_visible(is_totp);
+
+    let countdown_prefix = gtk::Label::new(Some(&tr("Valid for")));
+    countdown_prefix.add_css_class("dim-label");
+
+    let countdown_value = gtk::Label::new(None);
+    countdown_value.add_css_class("dim-label");
+    countdown_value.set_width_chars(2);
+    countdown_value.set_xalign(0.5);
+
+    let countdown_suffix = gtk::Label::new(Some(&tr("seconds")));
+    countdown_suffix.add_css_class("dim-label");
+
+    countdown_box.append(&countdown_prefix);
+    countdown_box.append(&countdown_value);
+    countdown_box.append(&countdown_suffix);
 
     let counter_label = gtk::Label::new(None);
 
@@ -605,7 +620,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
     content.append(&details);
     content.append(&otp_label);
     content.append(&progress);
-    content.append(&countdown);
+    content.append(&countdown_box);
     content.append(&counter_label);
     content.append(&copy_button);
 
@@ -652,7 +667,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
         let otp_label = otp_label.clone();
         let copy_button = copy_button.clone();
         let progress = progress.clone();
-        let countdown = countdown.clone();
+        let countdown_value = countdown_value.clone();
 
         let raw_code = Rc::clone(&raw_code);
 
@@ -692,12 +707,7 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
 
                     let seconds_left = remaining.ceil() as u64;
 
-                    countdown.set_text(&format!(
-                        "{} {} {}",
-                        tr("Valid for"),
-                        seconds_left,
-                        tr("seconds")
-                    ));
+                    countdown_value.set_text(&seconds_left.to_string());
 
                     let current_period_index = (server_seconds / period_f64).floor() as u64;
 

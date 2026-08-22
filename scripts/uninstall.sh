@@ -24,11 +24,10 @@ sudo rm -f \
 sudo rm -f \
     "/usr/local/share/metainfo/${APP_ID}.metainfo.xml"
 
-sudo rm -f \
-    "/usr/local/share/locale/de/LC_MESSAGES/twofauth-client.mo"
-
-sudo rm -f \
-    "/usr/local/share/locale/en/LC_MESSAGES/twofauth-client.mo"
+for lang in de en fr es pt; do
+    sudo rm -f \
+        "/usr/local/share/locale/${lang}/LC_MESSAGES/twofauth-client.mo"
+done
 
 if command -v update-desktop-database >/dev/null 2>&1; then
     sudo update-desktop-database \

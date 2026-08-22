@@ -14,16 +14,15 @@ cargo build --release
 
 echo "Compiling translations..."
 
-mkdir -p po/de/LC_MESSAGES
-mkdir -p po/en/LC_MESSAGES
+LANGUAGES=(de en fr es pt)
 
-msgfmt \
-    po/de/twofauth-client.po \
-    -o po/de/LC_MESSAGES/twofauth-client.mo
+for lang in "${LANGUAGES[@]}"; do
+    mkdir -p "po/${lang}/LC_MESSAGES"
 
-msgfmt \
-    po/en/twofauth-client.po \
-    -o po/en/LC_MESSAGES/twofauth-client.mo
+    msgfmt \
+        "po/${lang}/twofauth-client.po" \
+        -o "po/${lang}/LC_MESSAGES/twofauth-client.mo"
+done
 
 echo "Installing binary..."
 
@@ -49,17 +48,13 @@ sudo install -Dm644 \
     "data/${APP_ID}.metainfo.xml" \
     "/usr/local/share/metainfo/${APP_ID}.metainfo.xml"
 
-echo "Installing German translation..."
+echo "Installing translations..."
 
-sudo install -Dm644 \
-    "po/de/LC_MESSAGES/twofauth-client.mo" \
-    "/usr/local/share/locale/de/LC_MESSAGES/twofauth-client.mo"
-
-echo "Installing English translation..."
-
-sudo install -Dm644 \
-    "po/en/LC_MESSAGES/twofauth-client.mo" \
-    "/usr/local/share/locale/en/LC_MESSAGES/twofauth-client.mo"
+for lang in "${LANGUAGES[@]}"; do
+    sudo install -Dm644 \
+        "po/${lang}/LC_MESSAGES/twofauth-client.mo" \
+        "/usr/local/share/locale/${lang}/LC_MESSAGES/twofauth-client.mo"
+done
 
 if command -v update-desktop-database >/dev/null 2>&1; then
     sudo update-desktop-database \
@@ -91,5 +86,6 @@ echo "Desktop file:"
 echo "  /usr/local/share/applications/${APP_ID}.desktop"
 echo
 echo "Translations:"
-echo "  /usr/local/share/locale/de/LC_MESSAGES/twofauth-client.mo"
-echo "  /usr/local/share/locale/en/LC_MESSAGES/twofauth-client.mo"
+for lang in "${LANGUAGES[@]}"; do
+    echo "  /usr/local/share/locale/${lang}/LC_MESSAGES/twofauth-client.mo"
+done

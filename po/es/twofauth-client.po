@@ -1,0 +1,112 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TwoFAuth Client 0.1.1\n"
+"PO-Revision-Date: 2026-08-22 08:30+0200\n"
+"Last-Translator: Marcel Müller\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "TwoFAuth Client"
+msgstr "TwoFAuth Client"
+
+msgid "Search accounts..."
+msgstr "Buscar cuentas…"
+
+msgid "Loading accounts..."
+msgstr "Cargando cuentas…"
+
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Settings"
+msgstr "Configuración"
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "System default"
+msgstr "Predeterminado del sistema"
+
+msgid "Connection failed"
+msgstr "Error de conexión"
+
+msgid "No accounts found"
+msgstr "No se encontraron cuentas"
+
+msgid "Could not load accounts"
+msgstr "No se pudieron cargar las cuentas"
+
+msgid "Loading code..."
+msgstr "Cargando código…"
+
+msgid "Could not load code"
+msgstr "No se pudo cargar el código"
+
+msgid "Valid for"
+msgstr "Válido durante"
+
+msgid "seconds"
+msgstr "segundos"
+
+msgid "Access token is stored securely."
+msgstr "El token de acceso se almacena de forma segura."
+
+msgid "New personal access token"
+msgstr "Nuevo token de acceso personal"
+
+msgid "Leave empty to keep the current token"
+msgstr "Déjalo vacío para conservar el token actual"
+
+msgid "Test and save"
+msgstr "Probar y guardar"
+
+msgid "Reset connection"
+msgstr "Restablecer conexión"
+
+msgid "Could not load the stored access token."
+msgstr "No se pudo cargar el token de acceso guardado."
+
+msgid "Settings saved successfully."
+msgstr "La configuración se guardó correctamente."
+
+msgid "Counter"
+msgstr "Contador"
+
+msgid "Without group"
+msgstr "Sin grupo"
+
+msgid "digits"
+msgstr "dígitos"
+
+msgid "What is a personal access token?"
+msgstr "¿Qué es un token de acceso personal?"
+
+msgid "How do I get a token?"
+msgstr "¿Cómo obtengo un token?"
+
+msgid "The TwoFAuth Client needs a personal access token to securely access your accounts through the 2FAuth API."
+msgstr "TwoFAuth Client necesita un token de acceso personal (PAT) para acceder de forma segura a tus cuentas mediante la API de 2FAuth."
+
+msgid "Open your 2FAuth web interface, go to the settings and create a new personal access token. Copy the generated token and paste it into this field."
+msgstr "Abre la interfaz web de 2FAuth y ve a Configuración → OAuth → Tokens de acceso personal. Crea un nuevo token, asígnale un nombre y copia el token generado en este campo."
+
+msgid "The token is stored securely in your system keyring and is not written to the TwoFAuth Client configuration file."
+msgstr "El token se almacena de forma segura en el llavero del sistema y no se guarda en el archivo de configuración de TwoFAuth Client."
+
+msgid "About TwoFAuth Client"
+msgstr "Acerca de TwoFAuth Client"
+
+msgid "An unofficial native Linux desktop client for 2FAuth."
+msgstr "Un cliente de escritorio Linux nativo y no oficial para 2FAuth."
+
+msgid "Source code"
+msgstr "Código fuente"
+
+msgid "Support the project ☕"
+msgstr "Apoyar el proyecto ☕"
+
+msgid "Language changes take effect after restarting TwoFAuth Client."
+msgstr "Los cambios de idioma se aplicarán después de reiniciar TwoFAuth Client."

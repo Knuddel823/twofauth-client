@@ -1,0 +1,112 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TwoFAuth Client 0.1.1\n"
+"PO-Revision-Date: 2026-08-22 08:30+0200\n"
+"Last-Translator: Marcel Müller\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "TwoFAuth Client"
+msgstr "TwoFAuth Client"
+
+msgid "Search accounts..."
+msgstr "Rechercher des comptes…"
+
+msgid "Loading accounts..."
+msgstr "Chargement des comptes…"
+
+msgid "Copy"
+msgstr "Copier"
+
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "System default"
+msgstr "Langue du système"
+
+msgid "Connection failed"
+msgstr "Échec de la connexion"
+
+msgid "No accounts found"
+msgstr "Aucun compte trouvé"
+
+msgid "Could not load accounts"
+msgstr "Impossible de charger les comptes"
+
+msgid "Loading code..."
+msgstr "Chargement du code…"
+
+msgid "Could not load code"
+msgstr "Impossible de charger le code"
+
+msgid "Valid for"
+msgstr "Valide pendant"
+
+msgid "seconds"
+msgstr "secondes"
+
+msgid "Access token is stored securely."
+msgstr "Le jeton d’accès est stocké de manière sécurisée."
+
+msgid "New personal access token"
+msgstr "Nouveau jeton d’accès personnel"
+
+msgid "Leave empty to keep the current token"
+msgstr "Laisser vide pour conserver le jeton actuel"
+
+msgid "Test and save"
+msgstr "Tester et enregistrer"
+
+msgid "Reset connection"
+msgstr "Réinitialiser la connexion"
+
+msgid "Could not load the stored access token."
+msgstr "Impossible de charger le jeton d’accès enregistré."
+
+msgid "Settings saved successfully."
+msgstr "Paramètres enregistrés avec succès."
+
+msgid "Counter"
+msgstr "Compteur"
+
+msgid "Without group"
+msgstr "Sans groupe"
+
+msgid "digits"
+msgstr "chiffres"
+
+msgid "What is a personal access token?"
+msgstr "Qu’est-ce qu’un jeton d’accès personnel ?"
+
+msgid "How do I get a token?"
+msgstr "Comment obtenir un jeton ?"
+
+msgid "The TwoFAuth Client needs a personal access token to securely access your accounts through the 2FAuth API."
+msgstr "TwoFAuth Client nécessite un jeton d’accès personnel (PAT) pour accéder de manière sécurisée à vos comptes via l’API 2FAuth."
+
+msgid "Open your 2FAuth web interface, go to the settings and create a new personal access token. Copy the generated token and paste it into this field."
+msgstr "Ouvrez l’interface Web de 2FAuth et accédez à Paramètres → OAuth → Jetons d’accès personnels. Créez un nouveau jeton, donnez-lui un nom, puis copiez le jeton généré dans ce champ."
+
+msgid "The token is stored securely in your system keyring and is not written to the TwoFAuth Client configuration file."
+msgstr "Le jeton est stocké de manière sécurisée dans le trousseau de clés de votre système et n’est pas enregistré dans le fichier de configuration de TwoFAuth Client."
+
+msgid "About TwoFAuth Client"
+msgstr "À propos de TwoFAuth Client"
+
+msgid "An unofficial native Linux desktop client for 2FAuth."
+msgstr "Un client de bureau Linux natif et non officiel pour 2FAuth."
+
+msgid "Source code"
+msgstr "Code source"
+
+msgid "Support the project ☕"
+msgstr "Soutenir le projet ☕"
+
+msgid "Language changes take effect after restarting TwoFAuth Client."
+msgstr "Les changements de langue prennent effet après le redémarrage de TwoFAuth Client."

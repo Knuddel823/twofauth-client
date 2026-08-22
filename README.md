@@ -199,6 +199,13 @@ TwoFAuth Client currently includes:
 
 - English
 - German
+- French
+- Spanish
+- Portuguese
+
+The application follows the system language by default. A language can also
+be selected manually in the application settings. Language changes take
+effect after restarting TwoFAuth Client.
 
 Translation source files are located in the `po/` directory.
 

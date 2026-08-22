@@ -58,6 +58,34 @@ pub fn build_settings_window(
     token_entry.set_hexpand(true);
     token_entry.set_placeholder_text(Some(&tr("Leave empty to keep the current token")));
 
+    let language_label = gtk::Label::new(Some(&tr("Language")));
+    language_label.set_halign(gtk::Align::Start);
+
+    let language_combo = gtk::ComboBoxText::new();
+
+    language_combo.append(Some("system"), &tr("System default"));
+    language_combo.append(Some("de"), "Deutsch");
+    language_combo.append(Some("en"), "English");
+    language_combo.append(Some("fr"), "Français");
+    language_combo.append(Some("es"), "Español");
+    language_combo.append(Some("pt"), "Português");
+
+    let current_language = current_config
+        .as_ref()
+        .map(|config| config.language.as_str())
+        .unwrap_or("system");
+
+    if !language_combo.set_active_id(Some(current_language)) {
+        language_combo.set_active_id(Some("system"));
+    }
+
+    let language_hint = gtk::Label::new(Some(&tr(
+        "Language changes take effect after restarting TwoFAuth Client.",
+    )));
+    language_hint.set_halign(gtk::Align::Start);
+    language_hint.set_wrap(true);
+    language_hint.add_css_class("dim-label");
+
     let status = gtk::Label::new(None);
     status.set_wrap(true);
     status.set_halign(gtk::Align::Start);
@@ -81,6 +109,9 @@ pub fn build_settings_window(
     content.append(&token_status);
     content.append(&token_header);
     content.append(&token_entry);
+    content.append(&language_label);
+    content.append(&language_combo);
+    content.append(&language_hint);
     content.append(&status);
     content.append(&save_button);
     content.append(&reset_button);
@@ -111,6 +142,7 @@ pub fn build_settings_window(
     {
         let server_entry = server_entry.clone();
         let token_entry = token_entry.clone();
+        let language_combo = language_combo.clone();
         let status = status.clone();
         let save_button_for_click = save_button.clone();
 
@@ -118,6 +150,11 @@ pub fn build_settings_window(
             let server_url = server_entry.text().trim().to_string();
 
             let new_token = token_entry.text().to_string();
+
+            let language = language_combo
+                .active_id()
+                .map(|id| id.to_string())
+                .unwrap_or_else(|| "system".to_string());
 
             if server_url.is_empty() {
                 status.set_text(&tr("Please enter a server address."));
@@ -155,6 +192,8 @@ pub fn build_settings_window(
 
             let token_for_thread = token.clone();
 
+            let language_for_thread = language.clone();
+
             let should_save_new_token = !new_token.is_empty();
 
             std::thread::spawn(move || {
@@ -176,7 +215,8 @@ pub fn build_settings_window(
 
                 match result {
                     Ok(_) => {
-                        let config = AppConfig::new(&server_url_for_thread);
+                        let config =
+                            AppConfig::with_language(&server_url_for_thread, &language_for_thread);
 
                         if let Err(error) = save_config(&config) {
                             let _ = sender.send(SettingsResult::Error(error.to_string()));

@@ -44,6 +44,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="0.1.2" date="2026-08-22">
+      <description>
+        <p>Added language selection, French, Spanish and Portuguese translations, and improved TOTP countdown rendering.</p>
+        <p xml:lang="de">Sprachauswahl sowie französische, spanische und portugiesische Übersetzungen hinzugefügt und die Darstellung des TOTP-Countdowns verbessert.</p>
+      </description>
+    </release>
     <release version="0.1.1" date="2026-08-21">
       <description>
         <p>Improved application icon handling and added Debian packaging.</p>

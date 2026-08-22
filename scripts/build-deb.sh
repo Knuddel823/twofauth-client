@@ -18,16 +18,15 @@ cargo build --release
 
 echo "Compiling translations..."
 
-mkdir -p po/de/LC_MESSAGES
-mkdir -p po/en/LC_MESSAGES
+LANGUAGES=(de en fr es pt)
 
-msgfmt \
-    po/de/twofauth-client.po \
-    -o po/de/LC_MESSAGES/twofauth-client.mo
+for lang in "${LANGUAGES[@]}"; do
+    mkdir -p "po/${lang}/LC_MESSAGES"
 
-msgfmt \
-    po/en/twofauth-client.po \
-    -o po/en/LC_MESSAGES/twofauth-client.mo
+    msgfmt \
+        "po/${lang}/twofauth-client.po" \
+        -o "po/${lang}/LC_MESSAGES/twofauth-client.mo"
+done
 
 echo "Preparing Debian package tree..."
 
@@ -37,9 +36,11 @@ mkdir -p \
     "$BUILD_ROOT/DEBIAN" \
     "$BUILD_ROOT/usr/bin" \
     "$BUILD_ROOT/usr/share/applications" \
-    "$BUILD_ROOT/usr/share/metainfo" \
-    "$BUILD_ROOT/usr/share/locale/de/LC_MESSAGES" \
-    "$BUILD_ROOT/usr/share/locale/en/LC_MESSAGES"
+    "$BUILD_ROOT/usr/share/metainfo"
+
+for lang in "${LANGUAGES[@]}"; do
+    mkdir -p "$BUILD_ROOT/usr/share/locale/${lang}/LC_MESSAGES"
+done
 
 install -Dm755 \
     "target/release/${PACKAGE_NAME}" \
@@ -53,13 +54,11 @@ install -Dm644 \
     "data/${APP_ID}.metainfo.xml" \
     "$BUILD_ROOT/usr/share/metainfo/${APP_ID}.metainfo.xml"
 
-install -Dm644 \
-    "po/de/LC_MESSAGES/twofauth-client.mo" \
-    "$BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/twofauth-client.mo"
-
-install -Dm644 \
-    "po/en/LC_MESSAGES/twofauth-client.mo" \
-    "$BUILD_ROOT/usr/share/locale/en/LC_MESSAGES/twofauth-client.mo"
+for lang in "${LANGUAGES[@]}"; do
+    install -Dm644 \
+        "po/${lang}/LC_MESSAGES/twofauth-client.mo" \
+        "$BUILD_ROOT/usr/share/locale/${lang}/LC_MESSAGES/twofauth-client.mo"
+done
 
 install -Dm644 \
     "data/icons/hicolor/256x256/apps/${APP_ID}.png" \

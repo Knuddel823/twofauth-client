@@ -7,15 +7,30 @@ use serde::{Deserialize, Serialize};
 const CONFIG_DIR_NAME: &str = "twofauth-client";
 const CONFIG_FILE_NAME: &str = "config.toml";
 
+fn default_language() -> String {
+    "system".to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub server_url: String,
+
+    #[serde(default = "default_language")]
+    pub language: String,
 }
 
 impl AppConfig {
     pub fn new(server_url: impl Into<String>) -> Self {
         Self {
             server_url: server_url.into().trim_end_matches('/').to_string(),
+            language: default_language(),
+        }
+    }
+
+    pub fn with_language(server_url: impl Into<String>, language: impl Into<String>) -> Self {
+        Self {
+            server_url: server_url.into().trim_end_matches('/').to_string(),
+            language: language.into(),
         }
     }
 }
@@ -76,7 +91,7 @@ mod tests {
 
     #[test]
     fn config_roundtrip_serialization() {
-        let config = AppConfig::new("https://2fauth.example.com/");
+        let config = AppConfig::with_language("https://2fauth.example.com/", "de");
 
         let serialized = toml::to_string(&config).expect("Could not serialize test config");
 
@@ -84,5 +99,19 @@ mod tests {
             toml::from_str(&serialized).expect("Could not deserialize test config");
 
         assert_eq!(loaded.server_url, "https://2fauth.example.com");
+        assert_eq!(loaded.language, "de");
+    }
+
+    #[test]
+    fn old_config_defaults_to_system_language() {
+        let old_config = r#"
+server_url = "https://2fauth.example.com"
+"#;
+
+        let loaded: AppConfig =
+            toml::from_str(old_config).expect("Could not deserialize old config");
+
+        assert_eq!(loaded.server_url, "https://2fauth.example.com");
+        assert_eq!(loaded.language, "system");
     }
 }

@@ -7,11 +7,15 @@ mod ui;
 use adw::prelude::*;
 use gtk::gio;
 
-use crate::storage::config::config_exists;
+use crate::storage::config::{config_exists, load_config};
 use crate::storage::keyring::load_token;
 
 fn main() {
-    i18n::init();
+    let language = load_config()
+        .map(|config| config.language)
+        .unwrap_or_else(|_| "system".to_string());
+
+    i18n::init(&language);
 
     let app = adw::Application::builder()
         .application_id("de.twofauthclient.TwoFAuthClient")
@@ -44,9 +48,11 @@ fn main() {
 
         if configured {
             let window = ui::main_window::build_main_window(app);
+
             window.present();
         } else {
             let window = ui::setup_window::build_setup_window(app);
+
             window.present();
         }
     });
