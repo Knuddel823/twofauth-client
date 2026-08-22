@@ -120,10 +120,6 @@ pub fn delete_config() -> Result<()> {
     Ok(())
 }
 
-pub fn config_exists() -> bool {
-    config_path().map(|path| path.is_file()).unwrap_or(false)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

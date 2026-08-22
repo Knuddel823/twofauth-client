@@ -7,7 +7,7 @@ mod ui;
 use adw::prelude::*;
 use gtk::gio;
 
-use crate::storage::config::{config_exists, load_config};
+use crate::storage::config::load_config;
 use crate::storage::keyring::load_token;
 
 fn main() {
@@ -44,7 +44,12 @@ fn main() {
     app.add_action(&settings_action);
 
     app.connect_activate(|app| {
-        let configured = config_exists() && load_token().is_ok();
+        if let Some(window) = app.active_window() {
+            window.present();
+            return;
+        }
+
+        let configured = load_config().is_ok() && load_token().is_ok();
 
         if configured {
             let window = ui::main_window::build_main_window(app);

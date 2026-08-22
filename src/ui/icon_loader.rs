@@ -7,7 +7,8 @@ use adw::prelude::*;
 use gdk_pixbuf::PixbufLoader;
 use gtk::glib;
 
-use crate::api::client::{ApiError, TwoFAuthClient};
+use crate::api::client::TwoFAuthClient;
+use crate::api::runtime::runtime;
 use crate::storage::config::load_config;
 use crate::storage::keyring::load_token;
 
@@ -60,17 +61,8 @@ pub fn load_account_icon(image: &gtk::Image, icon_name: Option<String>) {
 
         let token = load_token().unwrap_or_default();
 
-        let runtime = match tokio::runtime::Runtime::new() {
-            Ok(runtime) => runtime,
-            Err(_) => {
-                let _ = sender.send(IconResult::Error);
-                return;
-            }
-        };
-
-        let result = runtime.block_on(async {
-            let client = TwoFAuthClient::new(config.server_url, token, config.allow_insecure_http)
-                .map_err(ApiError::InvalidServerUrl)?;
+        let result = runtime().block_on(async {
+            let client = TwoFAuthClient::new(config.server_url, token, config.allow_insecure_http)?;
 
             client.get_icon(&icon_name).await
         });
@@ -165,4 +157,42 @@ fn decode_icon(bytes: &[u8]) -> Option<gdk_pixbuf::Pixbuf> {
 fn set_fallback_icon(image: &gtk::Image) {
     image.set_icon_name(Some("dialog-password-symbolic"));
     image.set_pixel_size(32);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn safe_icon_filename_keeps_normal_filename() {
+        assert_eq!(safe_icon_filename("amazon.png"), "amazon.png");
+    }
+
+    #[test]
+    fn safe_icon_filename_removes_parent_path_components() {
+        assert_eq!(safe_icon_filename("../amazon.png"), "amazon.png");
+    }
+
+    #[test]
+    fn safe_icon_filename_removes_absolute_path_components() {
+        assert_eq!(safe_icon_filename("/tmp/icons/amazon.png"), "amazon.png");
+    }
+
+    #[test]
+    fn safe_icon_filename_handles_nested_relative_paths() {
+        assert_eq!(
+            safe_icon_filename("icons/services/amazon.png"),
+            "amazon.png"
+        );
+    }
+
+    #[test]
+    fn safe_icon_filename_falls_back_for_empty_name() {
+        assert_eq!(safe_icon_filename(""), "icon");
+    }
+
+    #[test]
+    fn safe_icon_filename_preserves_spaces_and_unicode() {
+        assert_eq!(safe_icon_filename("Mein Dienst ü.png"), "Mein Dienst ü.png");
+    }
 }

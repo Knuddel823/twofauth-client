@@ -5,6 +5,7 @@ use std::time::SystemTime;
 use reqwest::{Client, StatusCode};
 use serde::Deserialize;
 
+use crate::api::http_client::http_client;
 use crate::models::account::TwoFAccount;
 use crate::models::group::TwoFGroup;
 use crate::storage::config::{ServerUrlError, validate_server_url};
@@ -66,15 +67,15 @@ impl TwoFAuthClient {
         base_url: impl Into<String>,
         token: impl Into<String>,
         allow_insecure_http: bool,
-    ) -> std::result::Result<Self, ServerUrlError> {
+    ) -> Result<Self, ApiError> {
         let base_url = base_url.into().trim_end_matches('/').to_string();
 
-        validate_server_url(&base_url, allow_insecure_http)?;
+        validate_server_url(&base_url, allow_insecure_http).map_err(ApiError::InvalidServerUrl)?;
 
         Ok(Self {
             base_url,
             token: token.into(),
-            client: Client::new(),
+            client: http_client().clone(),
         })
     }
 
@@ -177,4 +178,43 @@ fn check_response_status(status: StatusCode) -> Result<(), ApiError> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn successful_status_is_accepted() {
+        assert!(check_response_status(StatusCode::OK).is_ok());
+    }
+
+    #[test]
+    fn unauthorized_status_is_authentication_error() {
+        let result = check_response_status(StatusCode::UNAUTHORIZED);
+
+        assert!(matches!(result, Err(ApiError::AuthenticationFailed)));
+    }
+
+    #[test]
+    fn server_error_is_unexpected_status() {
+        let result = check_response_status(StatusCode::INTERNAL_SERVER_ERROR);
+
+        assert!(matches!(
+            result,
+            Err(ApiError::UnexpectedStatus(
+                StatusCode::INTERNAL_SERVER_ERROR
+            ))
+        ));
+    }
+
+    #[test]
+    fn not_found_is_unexpected_status() {
+        let result = check_response_status(StatusCode::NOT_FOUND);
+
+        assert!(matches!(
+            result,
+            Err(ApiError::UnexpectedStatus(StatusCode::NOT_FOUND))
+        ));
+    }
 }

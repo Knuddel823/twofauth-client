@@ -7,6 +7,7 @@ use adw::prelude::*;
 use gtk::glib;
 
 use crate::api::client::{ApiError, OtpResponse, TwoFAuthClient};
+use crate::api::runtime::runtime;
 use crate::i18n::{api_error_message, tr};
 use crate::models::account::TwoFAccount;
 use crate::models::group::TwoFGroup;
@@ -182,18 +183,8 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
         let server_url = config.server_url;
         let allow_insecure_http = config.allow_insecure_http;
 
-        let runtime = match tokio::runtime::Runtime::new() {
-            Ok(runtime) => runtime,
-
-            Err(error) => {
-                let _ = sender.send(LoadResult::Error(UiError::Internal(error.to_string())));
-                return;
-            }
-        };
-
-        let result = runtime.block_on(async {
-            let client = TwoFAuthClient::new(server_url, token, allow_insecure_http)
-                .map_err(ApiError::InvalidServerUrl)?;
+        let result = runtime().block_on(async {
+            let client = TwoFAuthClient::new(server_url, token, allow_insecure_http)?;
 
             let accounts = client.get_accounts().await?;
 
@@ -799,19 +790,8 @@ fn request_otp(
         let server_url = config.server_url;
         let allow_insecure_http = config.allow_insecure_http;
 
-        let runtime = match tokio::runtime::Runtime::new() {
-            Ok(runtime) => runtime,
-
-            Err(error) => {
-                let _ = sender.send(OtpResult::Error(UiError::Internal(error.to_string())));
-
-                return;
-            }
-        };
-
-        let result = runtime.block_on(async {
-            let client = TwoFAuthClient::new(server_url, token, allow_insecure_http)
-                .map_err(ApiError::InvalidServerUrl)?;
+        let result = runtime().block_on(async {
+            let client = TwoFAuthClient::new(server_url, token, allow_insecure_http)?;
 
             client.get_otp(account_id).await
         });

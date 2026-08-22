@@ -7,6 +7,7 @@ use adw::prelude::*;
 use gtk::glib;
 
 use crate::api::client::{ApiError, TwoFAuthClient};
+use crate::api::runtime::runtime;
 use crate::i18n::{api_error_message, server_url_error_message, tr};
 use crate::storage::config::{
     AppConfig, delete_config, load_config, save_config, validate_server_url,
@@ -257,25 +258,12 @@ pub fn build_settings_window(
             let should_save_new_token = !new_token.is_empty();
 
             std::thread::spawn(move || {
-                let runtime = match tokio::runtime::Runtime::new() {
-                    Ok(runtime) => runtime,
-
-                    Err(error) => {
-                        let _ = sender.send(SettingsResult::Error(SettingsError::Internal(
-                            error.to_string(),
-                        )));
-
-                        return;
-                    }
-                };
-
-                let result = runtime.block_on(async {
+                let result = runtime().block_on(async {
                     let client = TwoFAuthClient::new(
                         &server_url_for_thread,
                         &token_for_thread,
                         allow_insecure_http,
-                    )
-                    .map_err(ApiError::InvalidServerUrl)?;
+                    )?;
 
                     client.get_accounts().await
                 });
