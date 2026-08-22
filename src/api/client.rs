@@ -1,11 +1,51 @@
+use std::error::Error;
+use std::fmt;
 use std::time::SystemTime;
 
-use anyhow::{Context, Result};
 use reqwest::{Client, StatusCode};
 use serde::Deserialize;
 
 use crate::models::account::TwoFAccount;
 use crate::models::group::TwoFGroup;
+use crate::storage::config::{ServerUrlError, validate_server_url};
+
+#[derive(Debug)]
+pub enum ApiError {
+    InvalidServerUrl(ServerUrlError),
+    ConnectionFailed(reqwest::Error),
+    AuthenticationFailed,
+    UnexpectedStatus(StatusCode),
+    InvalidResponse(reqwest::Error),
+}
+
+impl fmt::Display for ApiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidServerUrl(error) => write!(f, "Invalid server URL: {error:?}"),
+            Self::ConnectionFailed(_) => write!(f, "Failed to connect to the 2FAuth server"),
+            Self::AuthenticationFailed => {
+                write!(f, "Authentication failed: invalid or expired token")
+            }
+            Self::UnexpectedStatus(status) => {
+                write!(f, "2FAuth server returned HTTP {status}")
+            }
+            Self::InvalidResponse(_) => {
+                write!(f, "Failed to process the response from the 2FAuth server")
+            }
+        }
+    }
+}
+
+impl Error for ApiError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::ConnectionFailed(error) | Self::InvalidResponse(error) => Some(error),
+            Self::InvalidServerUrl(_) | Self::AuthenticationFailed | Self::UnexpectedStatus(_) => {
+                None
+            }
+        }
+    }
+}
 
 #[derive(Debug, Deserialize)]
 pub struct OtpResponse {
@@ -22,15 +62,23 @@ pub struct TwoFAuthClient {
 }
 
 impl TwoFAuthClient {
-    pub fn new(base_url: impl Into<String>, token: impl Into<String>) -> Self {
-        Self {
-            base_url: base_url.into().trim_end_matches('/').to_string(),
+    pub fn new(
+        base_url: impl Into<String>,
+        token: impl Into<String>,
+        allow_insecure_http: bool,
+    ) -> std::result::Result<Self, ServerUrlError> {
+        let base_url = base_url.into().trim_end_matches('/').to_string();
+
+        validate_server_url(&base_url, allow_insecure_http)?;
+
+        Ok(Self {
+            base_url,
             token: token.into(),
             client: Client::new(),
-        }
+        })
     }
 
-    pub async fn get_accounts(&self) -> Result<Vec<TwoFAccount>> {
+    pub async fn get_accounts(&self) -> Result<Vec<TwoFAccount>, ApiError> {
         let url = format!("{}/api/v1/twofaccounts", self.base_url);
 
         let response = self
@@ -40,25 +88,17 @@ impl TwoFAuthClient {
             .header("Accept", "application/json")
             .send()
             .await
-            .context("Failed to connect to the 2FAuth server")?;
+            .map_err(ApiError::ConnectionFailed)?;
 
-        let status = response.status();
-
-        if status == StatusCode::UNAUTHORIZED {
-            anyhow::bail!("Authentication failed: invalid or expired token");
-        }
-
-        if !status.is_success() {
-            anyhow::bail!("2FAuth server returned HTTP {}", status);
-        }
+        check_response_status(response.status())?;
 
         response
             .json::<Vec<TwoFAccount>>()
             .await
-            .context("Failed to parse the 2FAuth account list")
+            .map_err(ApiError::InvalidResponse)
     }
 
-    pub async fn get_groups(&self) -> Result<Vec<TwoFGroup>> {
+    pub async fn get_groups(&self) -> Result<Vec<TwoFGroup>, ApiError> {
         let url = format!("{}/api/v1/groups", self.base_url);
 
         let response = self
@@ -68,25 +108,17 @@ impl TwoFAuthClient {
             .header("Accept", "application/json")
             .send()
             .await
-            .context("Failed to request groups from the 2FAuth server")?;
+            .map_err(ApiError::ConnectionFailed)?;
 
-        let status = response.status();
-
-        if status == StatusCode::UNAUTHORIZED {
-            anyhow::bail!("Authentication failed: invalid or expired token");
-        }
-
-        if !status.is_success() {
-            anyhow::bail!("2FAuth server returned HTTP {} for groups", status);
-        }
+        check_response_status(response.status())?;
 
         response
             .json::<Vec<TwoFGroup>>()
             .await
-            .context("Failed to parse the 2FAuth group list")
+            .map_err(ApiError::InvalidResponse)
     }
 
-    pub async fn get_otp(&self, account_id: u64) -> Result<OtpResponse> {
+    pub async fn get_otp(&self, account_id: u64) -> Result<OtpResponse, ApiError> {
         let url = format!("{}/api/v1/twofaccounts/{}/otp", self.base_url, account_id);
 
         let response = self
@@ -96,17 +128,9 @@ impl TwoFAuthClient {
             .header("Accept", "application/json")
             .send()
             .await
-            .context("Failed to request OTP from the 2FAuth server")?;
+            .map_err(ApiError::ConnectionFailed)?;
 
-        let status = response.status();
-
-        if status == StatusCode::UNAUTHORIZED {
-            anyhow::bail!("Authentication failed: invalid or expired token");
-        }
-
-        if !status.is_success() {
-            anyhow::bail!("2FAuth server returned HTTP {}", status);
-        }
+        check_response_status(response.status())?;
 
         let server_time = response
             .headers()
@@ -117,14 +141,14 @@ impl TwoFAuthClient {
         let mut otp = response
             .json::<OtpResponse>()
             .await
-            .context("Failed to parse the OTP response")?;
+            .map_err(ApiError::InvalidResponse)?;
 
         otp.server_time = server_time;
 
         Ok(otp)
     }
 
-    pub async fn get_icon(&self, icon: &str) -> Result<Vec<u8>> {
+    pub async fn get_icon(&self, icon: &str) -> Result<Vec<u8>, ApiError> {
         let url = format!("{}/storage/icons/{}", self.base_url, icon);
 
         let response = self
@@ -133,19 +157,24 @@ impl TwoFAuthClient {
             .header("Accept", "image/*")
             .send()
             .await
-            .context("Failed to download the 2FAuth account icon")?;
+            .map_err(ApiError::ConnectionFailed)?;
 
-        let status = response.status();
+        check_response_status(response.status())?;
 
-        if !status.is_success() {
-            anyhow::bail!("2FAuth server returned HTTP {} for icon {}", status, icon);
-        }
-
-        let bytes = response
-            .bytes()
-            .await
-            .context("Failed to read the 2FAuth account icon")?;
+        let bytes = response.bytes().await.map_err(ApiError::InvalidResponse)?;
 
         Ok(bytes.to_vec())
     }
+}
+
+fn check_response_status(status: StatusCode) -> Result<(), ApiError> {
+    if status == StatusCode::UNAUTHORIZED {
+        return Err(ApiError::AuthenticationFailed);
+    }
+
+    if !status.is_success() {
+        return Err(ApiError::UnexpectedStatus(status));
+    }
+
+    Ok(())
 }

@@ -7,7 +7,7 @@ use adw::prelude::*;
 use gdk_pixbuf::PixbufLoader;
 use gtk::glib;
 
-use crate::api::client::TwoFAuthClient;
+use crate::api::client::{ApiError, TwoFAuthClient};
 use crate::storage::config::load_config;
 use crate::storage::keyring::load_token;
 
@@ -69,7 +69,9 @@ pub fn load_account_icon(image: &gtk::Image, icon_name: Option<String>) {
         };
 
         let result = runtime.block_on(async {
-            let client = TwoFAuthClient::new(config.server_url, token);
+            let client = TwoFAuthClient::new(config.server_url, token, config.allow_insecure_http)
+                .map_err(ApiError::InvalidServerUrl)?;
+
             client.get_icon(&icon_name).await
         });
 

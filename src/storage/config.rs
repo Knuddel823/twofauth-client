@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
 
 const CONFIG_DIR_NAME: &str = "twofauth-client";
@@ -17,21 +18,59 @@ pub struct AppConfig {
 
     #[serde(default = "default_language")]
     pub language: String,
+
+    #[serde(default)]
+    pub allow_insecure_http: bool,
 }
 
 impl AppConfig {
-    pub fn new(server_url: impl Into<String>) -> Self {
+    pub fn with_settings(
+        server_url: impl Into<String>,
+        language: impl Into<String>,
+        allow_insecure_http: bool,
+    ) -> Self {
         Self {
-            server_url: server_url.into().trim_end_matches('/').to_string(),
-            language: default_language(),
+            server_url: normalize_server_url(server_url),
+            language: language.into(),
+            allow_insecure_http,
         }
     }
+}
 
-    pub fn with_language(server_url: impl Into<String>, language: impl Into<String>) -> Self {
-        Self {
-            server_url: server_url.into().trim_end_matches('/').to_string(),
-            language: language.into(),
-        }
+fn normalize_server_url(server_url: impl Into<String>) -> String {
+    server_url.into().trim().trim_end_matches('/').to_string()
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ServerUrlError {
+    Empty,
+    InvalidUrl,
+    MissingHost,
+    InsecureHttpDisabled,
+    UnsupportedScheme,
+}
+
+pub fn validate_server_url(
+    server_url: &str,
+    allow_insecure_http: bool,
+) -> std::result::Result<(), ServerUrlError> {
+    let server_url = server_url.trim();
+
+    if server_url.is_empty() {
+        return Err(ServerUrlError::Empty);
+    }
+
+    let url = Url::parse(server_url).map_err(|_| ServerUrlError::InvalidUrl)?;
+
+    if url.host_str().is_none() {
+        return Err(ServerUrlError::MissingHost);
+    }
+
+    match url.scheme() {
+        "https" => Ok(()),
+        "http" if allow_insecure_http => Ok(()),
+        "http" => Err(ServerUrlError::InsecureHttpDisabled),
+        _ => Err(ServerUrlError::UnsupportedScheme),
     }
 }
 
@@ -91,7 +130,7 @@ mod tests {
 
     #[test]
     fn config_roundtrip_serialization() {
-        let config = AppConfig::with_language("https://2fauth.example.com/", "de");
+        let config = AppConfig::with_settings("https://2fauth.example.com/", "de", false);
 
         let serialized = toml::to_string(&config).expect("Could not serialize test config");
 
@@ -100,10 +139,11 @@ mod tests {
 
         assert_eq!(loaded.server_url, "https://2fauth.example.com");
         assert_eq!(loaded.language, "de");
+        assert!(!loaded.allow_insecure_http);
     }
 
     #[test]
-    fn old_config_defaults_to_system_language() {
+    fn old_config_defaults_to_secure_settings() {
         let old_config = r#"
 server_url = "https://2fauth.example.com"
 "#;
@@ -113,5 +153,31 @@ server_url = "https://2fauth.example.com"
 
         assert_eq!(loaded.server_url, "https://2fauth.example.com");
         assert_eq!(loaded.language, "system");
+        assert!(!loaded.allow_insecure_http);
+    }
+
+    #[test]
+    fn https_is_allowed_by_default() {
+        assert!(validate_server_url("https://2fauth.example.com", false).is_ok());
+    }
+
+    #[test]
+    fn http_is_rejected_by_default() {
+        assert!(validate_server_url("http://2fauth.example.com", false).is_err());
+    }
+
+    #[test]
+    fn http_can_be_explicitly_allowed() {
+        assert!(validate_server_url("http://2fauth.example.com", true).is_ok());
+    }
+
+    #[test]
+    fn unsupported_url_scheme_is_rejected() {
+        assert!(validate_server_url("ftp://2fauth.example.com", true).is_err());
+    }
+
+    #[test]
+    fn invalid_url_is_rejected() {
+        assert!(validate_server_url("not a server address", false).is_err());
     }
 }

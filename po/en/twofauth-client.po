@@ -123,3 +123,75 @@ msgstr "Support the project ☕"
 
 msgid "Language changes take effect after restarting TwoFAuth Client."
 msgstr "Language changes take effect after restarting TwoFAuth Client."
+
+msgid "Allow insecure HTTP connections"
+msgstr "Allow insecure HTTP connections"
+
+msgid "Disabled by default. HTTPS is strongly recommended."
+msgstr "Disabled by default. HTTPS is strongly recommended."
+
+msgid "Allow insecure HTTP connections?"
+msgstr "Allow insecure HTTP connections?"
+
+msgid "Security warning"
+msgstr "Security warning"
+
+msgid "HTTP does not encrypt the connection to your 2FAuth server. Your Personal Access Token, account information and OTP codes may be exposed to other devices or attackers on the network."
+msgstr "HTTP does not encrypt the connection to your 2FAuth server. Your Personal Access Token, account information and OTP codes may be exposed to other devices or attackers on the network."
+
+msgid "HTTPS is strongly recommended. Only enable HTTP if you understand and accept these risks."
+msgstr "HTTPS is strongly recommended. Only enable HTTP if you understand and accept these risks."
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Allow HTTP anyway"
+msgstr "Allow HTTP anyway"
+
+msgid "Please enter a server address."
+msgstr "Please enter a server address."
+
+msgid "The server address is not a valid URL."
+msgstr "The server address is not a valid URL."
+
+msgid "The server address does not contain a valid host."
+msgstr "The server address does not contain a valid host."
+
+msgid "HTTP connections are disabled. Enable insecure HTTP connections if you understand and accept the risks."
+msgstr "HTTP connections are disabled. Enable insecure HTTP connections if you understand and accept the risks."
+
+msgid "Only HTTPS connections are supported by default. HTTP can be enabled explicitly in the security settings."
+msgstr "Only HTTPS connections are supported by default. HTTP can be enabled explicitly in the security settings."
+
+msgid "Connect"
+msgstr "Connect"
+
+msgid "Connect to 2FAuth"
+msgstr "Connect to 2FAuth"
+
+msgid "Personal access token"
+msgstr "Personal access token"
+
+msgid "Please enter a personal access token."
+msgstr "Please enter a personal access token."
+
+msgid "Server"
+msgstr "Server"
+
+msgid "Testing connection..."
+msgstr "Testing connection..."
+
+msgid "Enter the address of your 2FAuth server and a personal access token."
+msgstr "Enter the address of your 2FAuth server and a personal access token."
+
+msgid "Failed to connect to the 2FAuth server."
+msgstr "Failed to connect to the 2FAuth server."
+
+msgid "Authentication failed. The personal access token is invalid or has expired."
+msgstr "Authentication failed. The personal access token is invalid or has expired."
+
+msgid "The 2FAuth server returned HTTP status"
+msgstr "The 2FAuth server returned HTTP status"
+
+msgid "The response from the 2FAuth server could not be processed."
+msgstr "The response from the 2FAuth server could not be processed."

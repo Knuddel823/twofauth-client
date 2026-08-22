@@ -110,3 +110,75 @@ msgstr "Soutenir le projet ☕"
 
 msgid "Language changes take effect after restarting TwoFAuth Client."
 msgstr "Les changements de langue prennent effet après le redémarrage de TwoFAuth Client."
+
+msgid "Allow insecure HTTP connections"
+msgstr "Autoriser les connexions HTTP non sécurisées"
+
+msgid "Disabled by default. HTTPS is strongly recommended."
+msgstr "Désactivé par défaut. HTTPS est fortement recommandé."
+
+msgid "Allow insecure HTTP connections?"
+msgstr "Autoriser les connexions HTTP non sécurisées ?"
+
+msgid "Security warning"
+msgstr "Avertissement de sécurité"
+
+msgid "HTTP does not encrypt the connection to your 2FAuth server. Your Personal Access Token, account information and OTP codes may be exposed to other devices or attackers on the network."
+msgstr "HTTP ne chiffre pas la connexion à votre serveur 2FAuth. Votre jeton d’accès personnel, les informations de vos comptes et vos codes OTP peuvent être exposés à d’autres appareils ou à des attaquants sur le réseau."
+
+msgid "HTTPS is strongly recommended. Only enable HTTP if you understand and accept these risks."
+msgstr "HTTPS est fortement recommandé. N’activez HTTP que si vous comprenez et acceptez ces risques."
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Allow HTTP anyway"
+msgstr "Autoriser HTTP malgré tout"
+
+msgid "Please enter a server address."
+msgstr "Veuillez saisir une adresse de serveur."
+
+msgid "The server address is not a valid URL."
+msgstr "L’adresse du serveur n’est pas une URL valide."
+
+msgid "The server address does not contain a valid host."
+msgstr "L’adresse du serveur ne contient pas d’hôte valide."
+
+msgid "HTTP connections are disabled. Enable insecure HTTP connections if you understand and accept the risks."
+msgstr "Les connexions HTTP sont désactivées. Activez les connexions HTTP non sécurisées uniquement si vous comprenez et acceptez les risques."
+
+msgid "Only HTTPS connections are supported by default. HTTP can be enabled explicitly in the security settings."
+msgstr "Par défaut, seules les connexions HTTPS sont prises en charge. HTTP peut être activé explicitement dans les paramètres de sécurité."
+
+msgid "Connect"
+msgstr "Se connecter"
+
+msgid "Connect to 2FAuth"
+msgstr "Se connecter à 2FAuth"
+
+msgid "Personal access token"
+msgstr "Jeton d’accès personnel"
+
+msgid "Please enter a personal access token."
+msgstr "Veuillez saisir un jeton d’accès personnel."
+
+msgid "Server"
+msgstr "Serveur"
+
+msgid "Testing connection..."
+msgstr "Test de la connexion..."
+
+msgid "Enter the address of your 2FAuth server and a personal access token."
+msgstr "Saisissez l’adresse de votre serveur 2FAuth et un jeton d’accès personnel."
+
+msgid "Failed to connect to the 2FAuth server."
+msgstr "Impossible de se connecter au serveur 2FAuth."
+
+msgid "Authentication failed. The personal access token is invalid or has expired."
+msgstr "Échec de l’authentification. Le jeton d’accès personnel est invalide ou a expiré."
+
+msgid "The 2FAuth server returned HTTP status"
+msgstr "Le serveur 2FAuth a renvoyé le statut HTTP"
+
+msgid "The response from the 2FAuth server could not be processed."
+msgstr "La réponse du serveur 2FAuth n’a pas pu être traitée."

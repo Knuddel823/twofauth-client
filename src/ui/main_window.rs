@@ -6,8 +6,8 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use adw::prelude::*;
 use gtk::glib;
 
-use crate::api::client::{OtpResponse, TwoFAuthClient};
-use crate::i18n::tr;
+use crate::api::client::{ApiError, OtpResponse, TwoFAuthClient};
+use crate::i18n::{api_error_message, tr};
 use crate::models::account::TwoFAccount;
 use crate::models::group::TwoFGroup;
 use crate::storage::config::load_config;
@@ -15,17 +15,22 @@ use crate::storage::keyring::load_token;
 use crate::storage::ui_state::{UiState, load_ui_state, save_ui_state};
 use crate::ui::icon_loader::load_account_icon;
 
+enum UiError {
+    Api(ApiError),
+    Internal(String),
+}
+
 enum LoadResult {
     Success {
         accounts: Vec<TwoFAccount>,
         groups: Vec<TwoFGroup>,
     },
-    Error(String),
+    Error(UiError),
 }
 
 enum OtpResult {
     Success(OtpResponse),
-    Error(String),
+    Error(UiError),
 }
 
 struct OtpSyncState {
@@ -58,6 +63,11 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
     let status = gtk::Label::new(Some(&tr("Loading accounts...")));
     status.set_margin_top(24);
     status.set_margin_bottom(24);
+    status.set_halign(gtk::Align::Start);
+    status.set_xalign(0.0);
+    status.set_wrap(true);
+    status.set_wrap_mode(gtk::pango::WrapMode::WordChar);
+    status.set_max_width_chars(50);
 
     let account_list = gtk::ListBox::new();
     account_list.set_selection_mode(gtk::SelectionMode::Single);
@@ -155,7 +165,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
             Ok(config) => config,
 
             Err(error) => {
-                let _ = sender.send(LoadResult::Error(error.to_string()));
+                let _ = sender.send(LoadResult::Error(UiError::Internal(error.to_string())));
                 return;
             }
         };
@@ -164,30 +174,32 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
             Ok(token) => token,
 
             Err(error) => {
-                let _ = sender.send(LoadResult::Error(error.to_string()));
+                let _ = sender.send(LoadResult::Error(UiError::Internal(error.to_string())));
                 return;
             }
         };
 
         let server_url = config.server_url;
+        let allow_insecure_http = config.allow_insecure_http;
 
         let runtime = match tokio::runtime::Runtime::new() {
             Ok(runtime) => runtime,
 
             Err(error) => {
-                let _ = sender.send(LoadResult::Error(error.to_string()));
+                let _ = sender.send(LoadResult::Error(UiError::Internal(error.to_string())));
                 return;
             }
         };
 
         let result = runtime.block_on(async {
-            let client = TwoFAuthClient::new(server_url, token);
+            let client = TwoFAuthClient::new(server_url, token, allow_insecure_http)
+                .map_err(ApiError::InvalidServerUrl)?;
 
             let accounts = client.get_accounts().await?;
 
             let groups = client.get_groups().await.unwrap_or_default();
 
-            Ok::<_, anyhow::Error>((accounts, groups))
+            Ok::<_, ApiError>((accounts, groups))
         });
 
         match result {
@@ -196,7 +208,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
             }
 
             Err(error) => {
-                let _ = sender.send(LoadResult::Error(error.to_string()));
+                let _ = sender.send(LoadResult::Error(UiError::Api(error)));
             }
         }
     });
@@ -221,6 +233,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
                         .filter(|group| group.id != 0)
                         .collect();
 
+                    status.remove_css_class("error");
                     status.set_visible(false);
 
                     rebuild_account_list(
@@ -235,7 +248,13 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
                 }
 
                 Ok(LoadResult::Error(error)) => {
-                    status.set_text(&format!("{}\n{}", tr("Could not load accounts"), error));
+                    let message = match error {
+                        UiError::Api(error) => api_error_message(&error),
+                        UiError::Internal(error) => error,
+                    };
+
+                    status.set_text(&format!("{}\n{}", tr("Could not load accounts"), message));
+                    status.add_css_class("error");
 
                     glib::ControlFlow::Break
                 }
@@ -244,6 +263,7 @@ pub fn build_main_window(app: &adw::Application) -> adw::ApplicationWindow {
 
                 Err(mpsc::TryRecvError::Disconnected) => {
                     status.set_text(&tr("Could not load accounts"));
+                    status.add_css_class("error");
 
                     glib::ControlFlow::Break
                 }
@@ -760,7 +780,7 @@ fn request_otp(
             Ok(config) => config,
 
             Err(error) => {
-                let _ = sender.send(OtpResult::Error(error.to_string()));
+                let _ = sender.send(OtpResult::Error(UiError::Internal(error.to_string())));
 
                 return;
             }
@@ -770,26 +790,28 @@ fn request_otp(
             Ok(token) => token,
 
             Err(error) => {
-                let _ = sender.send(OtpResult::Error(error.to_string()));
+                let _ = sender.send(OtpResult::Error(UiError::Internal(error.to_string())));
 
                 return;
             }
         };
 
         let server_url = config.server_url;
+        let allow_insecure_http = config.allow_insecure_http;
 
         let runtime = match tokio::runtime::Runtime::new() {
             Ok(runtime) => runtime,
 
             Err(error) => {
-                let _ = sender.send(OtpResult::Error(error.to_string()));
+                let _ = sender.send(OtpResult::Error(UiError::Internal(error.to_string())));
 
                 return;
             }
         };
 
         let result = runtime.block_on(async {
-            let client = TwoFAuthClient::new(server_url, token);
+            let client = TwoFAuthClient::new(server_url, token, allow_insecure_http)
+                .map_err(ApiError::InvalidServerUrl)?;
 
             client.get_otp(account_id).await
         });
@@ -800,7 +822,7 @@ fn request_otp(
             }
 
             Err(error) => {
-                let _ = sender.send(OtpResult::Error(error.to_string()));
+                let _ = sender.send(OtpResult::Error(UiError::Api(error)));
             }
         }
     });
@@ -845,7 +867,12 @@ fn request_otp(
             }
 
             Ok(OtpResult::Error(error)) => {
-                otp_label.set_text(&format!("{}\n{}", tr("Could not load code"), error));
+                let message = match error {
+                    UiError::Api(error) => api_error_message(&error),
+                    UiError::Internal(error) => error,
+                };
+
+                otp_label.set_text(&format!("{}\n{}", tr("Could not load code"), message));
 
                 copy_button.set_sensitive(false);
 
