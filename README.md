@@ -36,6 +36,9 @@ read-oriented desktop client for existing 2FAuth installations.
 - Remember collapsed group state
 - Display OTP type, algorithm and digit count
 - Configure, test and reset the 2FAuth connection
+- HTTPS required by default
+- Optional insecure HTTP support with explicit security confirmation
+- Network connection and request timeouts
 - Built-in help for creating a Personal Access Token
 - English, German, French, Spanish and Portuguese interface
 - Native GTK4/libadwaita user interface
@@ -147,6 +150,11 @@ Create a new token, give it a name and copy the generated token into
 TwoFAuth Client.
 
 The server URL is stored in the application configuration.
+
+HTTPS is required by default. Plain HTTP connections are disabled unless
+they are explicitly enabled by the user. Enabling HTTP requires a security
+confirmation because the Personal Access Token, account information and OTP
+codes may otherwise be transmitted without encryption.
 
 The Personal Access Token is stored separately in the operating
 system's secure keyring and is not written to the application
