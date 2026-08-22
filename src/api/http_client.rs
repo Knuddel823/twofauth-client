@@ -1,7 +1,7 @@
 use std::sync::OnceLock;
 use std::time::Duration;
 
-use reqwest::Client;
+use reqwest::{Client, redirect::Policy};
 
 static HTTP_CLIENT: OnceLock<Client> = OnceLock::new();
 
@@ -10,6 +10,7 @@ pub fn http_client() -> &'static Client {
         Client::builder()
             .connect_timeout(Duration::from_secs(10))
             .timeout(Duration::from_secs(30))
+            .redirect(Policy::none())
             .build()
             .expect("Failed to create the shared HTTP client")
     })
