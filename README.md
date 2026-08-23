@@ -297,4 +297,4 @@ version 3 or later (`GPL-3.0-or-later`).
 
 See [LICENSE](LICENSE) for the full license text.
 
-Copyright © 2026 Marcel Müller
+Copyright © 2026 Knuddel823

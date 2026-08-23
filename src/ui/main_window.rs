@@ -909,15 +909,15 @@ fn show_about_dialog(parent: &adw::ApplicationWindow) {
         .application_name("TwoFAuth Client")
         .application_icon("twofauth-client")
         .version(env!("CARGO_PKG_VERSION"))
-        .developer_name("Marcel Müller")
+        .developer_name("Knuddel823")
         .comments(&tr("An unofficial native Linux desktop client for 2FAuth."))
-        .copyright("© 2026 Marcel Müller")
+        .copyright("© 2026 Knuddel823")
         .license_type(gtk::License::Gpl30)
         .website("https://github.com/Knuddel823/twofauth-client")
         .issue_url("https://github.com/Knuddel823/twofauth-client/issues")
         .build();
 
-    dialog.set_developers(&["Marcel Müller"]);
+    dialog.set_developers(&["Knuddel823"]);
 
     dialog.add_link(
         &tr("Source code"),

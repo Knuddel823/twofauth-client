@@ -71,7 +71,7 @@ Version: ${VERSION}
 Section: utils
 Priority: optional
 Architecture: ${ARCH}
-Maintainer: Marcel Müller
+Maintainer: Knuddel823 <161348170+Knuddel823@users.noreply.github.com>
 Depends: libadwaita-1-0, libgtk-4-1, libglib2.0-0t64
 Recommends: gnome-keyring
 Homepage: https://github.com/Knuddel823/twofauth-client
