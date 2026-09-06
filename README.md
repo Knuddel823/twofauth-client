@@ -18,6 +18,10 @@ TwoFAuth Client is currently in early development.
 The first release focuses deliberately on providing a simple and
 read-oriented desktop client for existing 2FAuth installations.
 
+## Screenshots
+
+![TwoFAuth Client screenshots](assets/screenshots/twofauth-client-screenshots.png)
+
 ## Features
 
 - Connect to a self-hosted 2FAuth server
@@ -242,7 +246,10 @@ left untouched.
 Possible future improvements include:
 
 - Flatpak packaging
+- Snap packaging
 - GitHub Actions for automated builds
+- shared Rust core for multiple platforms
+- Windows desktop client
 - additional translations
 - improved accessibility
 - further desktop integration
@@ -250,9 +257,6 @@ Possible future improvements include:
 
 Creating, editing or deleting 2FAuth accounts is intentionally **not**
 part of the near-term roadmap.
-
-Account management features may be considered in a much later version
-after the security and API implications have been evaluated carefully.
 
 ## About 2FAuth
 
