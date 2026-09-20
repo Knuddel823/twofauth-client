@@ -31,6 +31,23 @@
     </p>
   </description>
 
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/Knuddel823/twofauth-client/main/assets/screenshots/flathub/main-window.png</image>
+      <caption>Main window with grouped 2FAuth accounts</caption>
+    </screenshot>
+
+    <screenshot>
+      <image>https://raw.githubusercontent.com/Knuddel823/twofauth-client/main/assets/screenshots/flathub/account-details.png</image>
+      <caption>Account details and one-time password display</caption>
+    </screenshot>
+
+    <screenshot>
+      <image>https://raw.githubusercontent.com/Knuddel823/twofauth-client/main/assets/screenshots/flathub/settings.png</image>
+      <caption>Connection, security and language settings</caption>
+    </screenshot>
+  </screenshots>
+
   <launchable type="desktop-id">io.github.knuddel823.twofauth-client.desktop</launchable>
 
   <url type="homepage">https://github.com/Knuddel823/twofauth-client</url>
