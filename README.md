@@ -112,6 +112,45 @@ For development, the application can also be started with:
 cargo run
 ~~~
 
+## Flatpak
+
+A Flatpak manifest is included for building TwoFAuth Client with the
+GNOME runtime.
+
+The build requires Flatpak Builder and the GNOME SDK used by the
+manifest. Generate `flatpak/cargo-sources.json` when Cargo dependencies
+change.
+
+Build and export the application to a local repository:
+
+~~~bash
+flatpak run --command=flatpak-builder \
+  org.flatpak.Builder \
+  --force-clean \
+  --repo=flatpak-repo \
+  flatpak-build \
+  flatpak/io.github.knuddel823.twofauth-client.yml
+~~~
+
+Install the application from the local repository using the host
+Flatpak installation:
+
+~~~bash
+/usr/bin/flatpak --user install -y \
+  --reinstall \
+  ./flatpak-repo \
+  io.github.knuddel823.twofauth-client
+~~~
+
+The application ID is:
+
+~~~text
+io.github.knuddel823.twofauth-client
+~~~
+
+The local `flatpak-build/`, `.flatpak-builder/` and `flatpak-repo/`
+directories are build artifacts and are not tracked by Git.
+
 ## Installation
 
 A simple installation script is included:
@@ -245,7 +284,6 @@ left untouched.
 
 Possible future improvements include:
 
-- Flatpak packaging
 - Snap packaging
 - GitHub Actions for automated builds
 - shared Rust core for multiple platforms
