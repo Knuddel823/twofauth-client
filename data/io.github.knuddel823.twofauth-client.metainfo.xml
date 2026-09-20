@@ -61,6 +61,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="0.1.6" date="2026-09-20">
+      <description>
+        <p>Added Flatpak packaging, migrated to the GitHub-based application ID, added AppStream screenshots, and updated the Flatpak runtime to GNOME 51.</p>
+        <p xml:lang="de">Flatpak-Paketierung hinzugefügt, auf die GitHub-basierte Anwendungs-ID umgestellt, AppStream-Screenshots ergänzt und die Flatpak-Laufzeitumgebung auf GNOME 51 aktualisiert.</p>
+      </description>
+    </release>
     <release version="0.1.5" date="2026-08-22">
       <description>
         <p>Fixed application icon integration on GNOME desktops.</p>
