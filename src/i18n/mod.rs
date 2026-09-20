@@ -5,6 +5,7 @@ use gettextrs::{LocaleCategory, bindtextdomain, gettext, setlocale, textdomain};
 const DOMAIN: &str = "twofauth-client";
 
 const DEVELOPMENT_LOCALE_DIR: &str = "po";
+const FLATPAK_LOCALE_DIR: &str = "/app/share/locale";
 const LOCAL_LOCALE_DIR: &str = "/usr/local/share/locale";
 const SYSTEM_LOCALE_DIR: &str = "/usr/share/locale";
 
@@ -19,8 +20,10 @@ fn has_translation(locale_dir: &str) -> bool {
 }
 
 fn locale_dir() -> &'static str {
-    if Path::new(DEVELOPMENT_LOCALE_DIR).is_dir() {
+    if has_translation(DEVELOPMENT_LOCALE_DIR) {
         DEVELOPMENT_LOCALE_DIR
+    } else if has_translation(FLATPAK_LOCALE_DIR) {
+        FLATPAK_LOCALE_DIR
     } else if has_translation(LOCAL_LOCALE_DIR) {
         LOCAL_LOCALE_DIR
     } else {

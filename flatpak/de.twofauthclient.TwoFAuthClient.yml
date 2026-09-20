@@ -1,0 +1,55 @@
+app-id: de.twofauthclient.TwoFAuthClient
+
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+
+separate-locales: false
+
+command: twofauth-client
+
+finish-args:
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+  - --talk-name=org.freedesktop.secrets
+
+modules:
+  - name: twofauth-client
+    buildsystem: simple
+
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      env:
+        CARGO_HOME: /run/build/twofauth-client/cargo
+
+    build-commands:
+      - cargo build --release --offline
+
+      - install -Dm755 target/release/twofauth-client /app/bin/twofauth-client
+
+      - install -Dm644 data/de.twofauthclient.TwoFAuthClient.desktop /app/share/applications/de.twofauthclient.TwoFAuthClient.desktop
+
+      - sed -i 's/^Icon=twofauth-client$/Icon=de.twofauthclient.TwoFAuthClient/' /app/share/applications/de.twofauthclient.TwoFAuthClient.desktop
+
+      - install -Dm644 data/de.twofauthclient.TwoFAuthClient.metainfo.xml /app/share/metainfo/de.twofauthclient.TwoFAuthClient.metainfo.xml
+
+      - install -Dm644 data/icon-master.png /app/share/icons/hicolor/256x256/apps/de.twofauthclient.TwoFAuthClient.png
+
+      - |
+        for lang in de en es fr pt; do
+          mkdir -p "/app/share/locale/$lang/LC_MESSAGES"
+          msgfmt "po/$lang/twofauth-client.po" \
+            -o "/app/share/locale/$lang/LC_MESSAGES/twofauth-client.mo"
+        done
+
+    sources:
+      - type: dir
+        path: ..
+
+      - cargo-sources.json
