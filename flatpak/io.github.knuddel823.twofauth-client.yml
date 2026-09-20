@@ -1,4 +1,4 @@
-app-id: de.twofauthclient.TwoFAuthClient
+app-id: io.github.knuddel823.twofauth-client
 
 runtime: org.gnome.Platform
 runtime-version: '50'
@@ -33,13 +33,12 @@ modules:
 
       - install -Dm755 target/release/twofauth-client /app/bin/twofauth-client
 
-      - install -Dm644 data/de.twofauthclient.TwoFAuthClient.desktop /app/share/applications/de.twofauthclient.TwoFAuthClient.desktop
+      - install -Dm644 data/io.github.knuddel823.twofauth-client.desktop /app/share/applications/io.github.knuddel823.twofauth-client.desktop
 
-      - sed -i 's/^Icon=twofauth-client$/Icon=de.twofauthclient.TwoFAuthClient/' /app/share/applications/de.twofauthclient.TwoFAuthClient.desktop
 
-      - install -Dm644 data/de.twofauthclient.TwoFAuthClient.metainfo.xml /app/share/metainfo/de.twofauthclient.TwoFAuthClient.metainfo.xml
+      - install -Dm644 data/io.github.knuddel823.twofauth-client.metainfo.xml /app/share/metainfo/io.github.knuddel823.twofauth-client.metainfo.xml
 
-      - install -Dm644 data/icon-master.png /app/share/icons/hicolor/256x256/apps/de.twofauthclient.TwoFAuthClient.png
+      - install -Dm644 data/icon-master.png /app/share/icons/hicolor/256x256/apps/io.github.knuddel823.twofauth-client.png
 
       - |
         for lang in de en es fr pt; do

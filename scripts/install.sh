@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-APP_ID="de.twofauthclient.TwoFAuthClient"
-ICON_NAME="twofauth-client"
+APP_ID="io.github.knuddel823.twofauth-client"
+ICON_NAME="io.github.knuddel823.twofauth-client"
 BINARY_NAME="twofauth-client"
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

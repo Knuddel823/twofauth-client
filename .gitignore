@@ -9,3 +9,6 @@
 
 # Package build output
 /dist/
+
+# Local Flatpak repository
+flatpak-repo/

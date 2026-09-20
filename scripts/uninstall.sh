@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-APP_ID="de.twofauthclient.TwoFAuthClient"
-ICON_NAME="twofauth-client"
+APP_ID="io.github.knuddel823.twofauth-client"
+ICON_NAME="io.github.knuddel823.twofauth-client"
 BINARY_NAME="twofauth-client"
 
 echo "Removing TwoFAuth Client..."
@@ -18,9 +18,18 @@ for size in 16 24 32 48 64 128 256; do
         "/usr/local/share/icons/hicolor/${size}x${size}/apps/${ICON_NAME}.png"
 done
 
-# Remove icon used by early development versions.
+# Remove scalable icon used by early development versions.
 sudo rm -f \
     "/usr/local/share/icons/hicolor/scalable/apps/${ICON_NAME}.svg"
+
+# Remove legacy icon names used before the application ID migration.
+for size in 16 24 32 48 64 128 256; do
+    sudo rm -f \
+        "/usr/local/share/icons/hicolor/${size}x${size}/apps/twofauth-client.png"
+done
+
+sudo rm -f \
+    "/usr/local/share/icons/hicolor/scalable/apps/twofauth-client.svg"
 
 sudo rm -f \
     "/usr/local/share/metainfo/${APP_ID}.metainfo.xml"

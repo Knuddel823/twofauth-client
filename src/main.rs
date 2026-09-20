@@ -18,7 +18,7 @@ fn main() {
     i18n::init(&language);
 
     let app = adw::Application::builder()
-        .application_id("de.twofauthclient.TwoFAuthClient")
+        .application_id("io.github.knuddel823.twofauth-client")
         .build();
 
     let settings_action = gio::SimpleAction::new("settings", None);

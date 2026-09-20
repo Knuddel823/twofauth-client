@@ -907,7 +907,7 @@ fn format_otp(code: &str, digits: u32) -> String {
 fn show_about_dialog(parent: &adw::ApplicationWindow) {
     let dialog = adw::AboutDialog::builder()
         .application_name("TwoFAuth Client")
-        .application_icon("twofauth-client")
+        .application_icon("io.github.knuddel823.twofauth-client")
         .version(env!("CARGO_PKG_VERSION"))
         .developer_name("Knuddel823")
         .comments(&tr("An unofficial native Linux desktop client for 2FAuth."))

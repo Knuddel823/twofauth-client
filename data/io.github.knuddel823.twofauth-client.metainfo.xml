@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>de.twofauthclient.TwoFAuthClient</id>
+  <id>io.github.knuddel823.twofauth-client</id>
 
   <name>TwoFAuth Client</name>
   <summary>Native Linux desktop client for 2FAuth</summary>
@@ -31,13 +31,13 @@
     </p>
   </description>
 
-  <launchable type="desktop-id">de.twofauthclient.TwoFAuthClient.desktop</launchable>
+  <launchable type="desktop-id">io.github.knuddel823.twofauth-client.desktop</launchable>
 
   <url type="homepage">https://github.com/Knuddel823/twofauth-client</url>
   <url type="bugtracker">https://github.com/Knuddel823/twofauth-client/issues</url>
   <url type="donation">https://buymeacoffee.com/knuddel823</url>
 
-  <developer id="de.twofauthclient">
+  <developer id="io.github.knuddel823">
     <name>Knuddel823</name>
   </developer>
 

@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-APP_ID="de.twofauthclient.TwoFAuthClient"
-ICON_NAME="twofauth-client"
+APP_ID="io.github.knuddel823.twofauth-client"
+ICON_NAME="io.github.knuddel823.twofauth-client"
 PACKAGE_NAME="twofauth-client"
 VERSION="$(grep '^version = ' Cargo.toml | head -1 | cut -d '"' -f2)"
 ARCH="$(dpkg --print-architecture)"
