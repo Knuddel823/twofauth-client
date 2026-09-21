@@ -10,3 +10,4 @@ Categories=Utility;Security;
 Keywords=2FA;TOTP;HOTP;OTP;Authenticator;TwoFAuth;
 Keywords[de]=2FA;TOTP;HOTP;OTP;Authentifizierung;TwoFAuth;
 StartupNotify=true
+X-Purism-FormFactor=Workstation;Mobile;

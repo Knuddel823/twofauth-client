@@ -543,9 +543,25 @@ fn show_otp_dialog(parent: &adw::ApplicationWindow, account: TwoFAccount) {
 
     let header = adw::HeaderBar::new();
 
+    let close_button = gtk::Button::new();
+    close_button.set_icon_name("go-previous-symbolic");
+    close_button.set_tooltip_text(Some(&tr("Back")));
+    close_button.add_css_class("flat");
+
+    {
+        let dialog = dialog.clone();
+
+        close_button.connect_clicked(move |_| {
+            dialog.close();
+        });
+    }
+
+    header.pack_start(&close_button);
+
     let service = gtk::Label::new(Some(&account.service));
 
     service.add_css_class("title");
+    service.set_ellipsize(gtk::pango::EllipsizeMode::End);
 
     header.set_title_widget(Some(&service));
 

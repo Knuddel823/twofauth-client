@@ -195,3 +195,7 @@ msgstr "The 2FAuth server returned HTTP status"
 
 msgid "The response from the 2FAuth server could not be processed."
 msgstr "The response from the 2FAuth server could not be processed."
+
+#: src/ui/main_window.rs
+msgid "Back"
+msgstr "Back"
