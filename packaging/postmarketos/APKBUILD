@@ -1,0 +1,74 @@
+# Maintainer: Knuddel823 <161348170+Knuddel823@users.noreply.github.com>
+pkgname=twofauth-client
+pkgver=0.1.7
+pkgrel=0
+pkgdesc="Unofficial native Linux client for 2FAuth"
+url="https://github.com/Knuddel823/twofauth-client"
+arch="all"
+license="GPL-3.0-or-later"
+subpackages="$pkgname-lang"
+options="net"
+
+makedepends="
+	build-base
+	cargo
+	cargo-auditable
+	gettext
+	gtk4.0-dev
+	libadwaita-dev
+	pkgconf
+	rust
+"
+
+source="$pkgname-$pkgver.tar.gz::https://github.com/Knuddel823/twofauth-client/archive/refs/tags/v$pkgver.tar.gz"
+
+builddir="$srcdir/$pkgname-$pkgver"
+
+prepare() {
+	default_prepare
+	cargo fetch --target="$CHOST" --locked
+}
+
+build() {
+	cargo auditable build --release --frozen
+
+	for lang in de en fr es pt; do
+		mkdir -p "po/$lang/LC_MESSAGES"
+		msgfmt \
+			"po/$lang/twofauth-client.po" \
+			-o "po/$lang/LC_MESSAGES/twofauth-client.mo"
+	done
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -Dm755 \
+		"target/release/twofauth-client" \
+		"$pkgdir/usr/bin/twofauth-client"
+
+	install -Dm644 \
+		"data/io.github.knuddel823.twofauth-client.desktop" \
+		"$pkgdir/usr/share/applications/io.github.knuddel823.twofauth-client.desktop"
+
+	install -Dm644 \
+		"data/io.github.knuddel823.twofauth-client.metainfo.xml" \
+		"$pkgdir/usr/share/metainfo/io.github.knuddel823.twofauth-client.metainfo.xml"
+
+	for size in 16 24 32 48 64 128 256; do
+		install -Dm644 \
+			"data/icons/hicolor/${size}x${size}/apps/io.github.knuddel823.twofauth-client.png" \
+			"$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/io.github.knuddel823.twofauth-client.png"
+	done
+
+	for lang in de en fr es pt; do
+		install -Dm644 \
+			"po/$lang/LC_MESSAGES/twofauth-client.mo" \
+			"$pkgdir/usr/share/locale/$lang/LC_MESSAGES/twofauth-client.mo"
+	done
+}
+sha512sums="
+94df994dfad541a7c099a9684e5350317f8d28270946c5a9ae83ba6bbc1de6bbfb514d04f21c4f675d5a964994d7bffa4c495e7acf0c23269edb343082ee9882  twofauth-client-0.1.7.tar.gz
+"
