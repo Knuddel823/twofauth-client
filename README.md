@@ -153,30 +153,28 @@ directories are build artifacts and are not tracked by Git.
 
 ## Installation
 
-A simple installation script is included:
+The easiest way to install a local build is to use the included installation script.
 
-~~~bash
-./scripts/install.sh
-~~~
+For the current release:
 
-The application is installed below `/usr/local`.
+    git clone https://github.com/Knuddel823/twofauth-client.git
+    cd twofauth-client
+    git checkout v0.1.7
+    ./scripts/install.sh
 
-The installation includes:
+The installer builds TwoFAuth Client and installs the application below `/usr/local`.
 
-- `/usr/local/bin/twofauth-client`
-- desktop integration
-- application icon
-- gettext translations
+Other supported installation methods are:
 
-Only installation steps requiring elevated privileges use `sudo`.
-The Rust build itself runs as the current user.
+- **Flatpak:** build and install using the included Flatpak manifest
+- **Alpine Linux / postmarketOS:** build a native APK using the included `APKBUILD`
+- **Source:** build directly with Cargo
 
-After installation, TwoFAuth Client can be started from the desktop
-application menu or from a terminal:
+Flatpak and postmarketOS/Alpine packages are currently intended for local builds. TwoFAuth Client is not yet available from Flathub or the official postmarketOS/Alpine repositories.
 
-~~~bash
-twofauth-client
-~~~
+For complete dependency, build, installation and troubleshooting instructions, see:
+
+**[Installation Guide](docs/INSTALL.md)**
 
 ## Configuration
 
