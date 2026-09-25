@@ -61,6 +61,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="0.1.7" date="2026-09-25">
+      <description>
+        <p>Improved mobile support for small touch displays, added back navigation to account and settings windows, updated application icons and mobile desktop integration, and added postmarketOS/Alpine packaging support.</p>
+        <p xml:lang="de">Die Unterstützung für kleine mobile Touch-Displays wurde verbessert, eine Zurück-Navigation für Konto- und Einstellungsfenster ergänzt, Anwendungssymbole und die mobile Desktop-Integration aktualisiert sowie die Paketierung für postmarketOS/Alpine hinzugefügt.</p>
+      </description>
+    </release>
     <release version="0.1.6" date="2026-09-20">
       <description>
         <p>Added Flatpak packaging, migrated to the GitHub-based application ID, added AppStream screenshots, and updated the Flatpak runtime to GNOME 51.</p>
