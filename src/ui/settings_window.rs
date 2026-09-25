@@ -32,6 +32,13 @@ pub fn build_settings_window(
 
     let header = adw::HeaderBar::new();
 
+    let close_button = gtk::Button::new();
+    close_button.set_icon_name("go-previous-symbolic");
+    close_button.set_tooltip_text(Some(&tr("Back")));
+    close_button.add_css_class("flat");
+
+    header.pack_start(&close_button);
+
     let title = gtk::Label::new(Some(&tr("Settings")));
     title.add_css_class("title");
     header.set_title_widget(Some(&title));
@@ -167,6 +174,14 @@ pub fn build_settings_window(
         .default_height(520)
         .content(&root)
         .build();
+
+    {
+        let window = window.clone();
+
+        close_button.connect_clicked(move |_| {
+            window.close();
+        });
+    }
 
     {
         let window = window.clone();
