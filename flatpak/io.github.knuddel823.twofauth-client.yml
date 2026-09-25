@@ -50,7 +50,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/Knuddel823/twofauth-client.git
-        tag: v0.1.6
-        commit: e527646e205d1fc3626fd2c52f2a158992ba6c6f
+        tag: v0.1.7
+        commit: 56cb47641090e4241996289d1eea93d29ec4e458
 
       - cargo-sources.json
